@@ -1,4 +1,5 @@
-class CodeEval {
+class CodeEval 
+{
     constructor(initCode)
     {
         this.initCode = initCode;

@@ -1,8 +1,8 @@
 const parser = require("@babel/parser").parse;
 const traverse = require('@babel/traverse').default;
 
-const { writeFile } = require('../tools/file_handler');
-const { getTypes } = require('../tools/get_types');
+const { writeFile } = require('../Tools/file_handler');
+const { getTypes } = require('../Tools/get_types');
 const { ast2js } = require('./generator');
 
 // 判断是否是 node 节点
@@ -49,7 +49,7 @@ function hasTraitNode(node, traitNode) {
         else 
         {
 			// 递归判断子树
-			if (has_trait_tree(node[key], traitNode[key]) == false) return false;
+			if (hasTraitNode(node[key], traitNode[key]) == false) return false;
 		}
 	}
 
@@ -61,6 +61,7 @@ function passCode(ast, traitNode, passFunc)
 {
 	traverse(ast, 
 	{
+		
 		enter(path)
 		{
 			let node = path.node;
@@ -77,8 +78,6 @@ function passCode(ast, traitNode, passFunc)
 
 					throw error
                 }
-
-                path.skip();
 			}
 		}
 	});
@@ -99,7 +98,7 @@ function checkPass(pass)
 }
 
 // 清理代码
-function clear(jsCode, passArray, filePath = "./data/res")
+function clear(jsCode, passArray, filePath = "./data/res.js")
 {
 	let ret;
 	let ast = parser(jsCode);

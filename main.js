@@ -1,21 +1,50 @@
-const generator = require("@babel/generator").default;
-const parser = require("@babel/parser").parse;
+const types = require("@babel/types");
 
-let jsCode = `
-let a = [122, 2222, 1113];
+const {jsClear, tools, LOG} = require("./src/index")
 
-for (let aa of a)
-{
-    console.log(aa)
-}
-`
-let ast = parser(jsCode)
-let res = JSON.stringify(ast)
-function ast2js(ast, opts = { comments: false, retainLines: true })
-{
-    let { code } = generator(ast, opts);
-    return code
+let jsCode = tools.readFile("./example/zhihu.js")
+
+
+let pass1 = []
+pass1[0] = {
+    type: "IfStatement",
+    consequent: {
+        type: "ReturnStatement"
+    }
 }
 
-js = ast2js(JSON.parse(res))
+pass1[1] = 
+/**
+* @param {import('@babel/traverse').NodePath} path
+*/
+function(path) {
+    console.log(path.get("consequent") + "")
+}
+
+let pass2 = []
+
+pass2[0] = {
+    type: "IfStatement",
+    consequent: {
+        type: "BlockStatement",
+        body:
+        [
+
+        ]
+    }
+}
+
+pass2[1] = 
+/**
+* @param {import('@babel/traverse').NodePath} path
+*/
+function(path)
+{
+    for (let bb of path.get("consequent").get("body"))
+    {
+        if (bb["type"] != "IfStatement") LOG(bb["type"], bb + "");
+    }
+}
+
+jsClear.clear(jsCode, [ pass1, pass2 ])
 console.log()

@@ -1,0 +1,15 @@
+{
+    "Pass Function": {
+      "prefix": "passFunc",
+      "body": [
+        "",
+        "/**",
+        "* @param {import('@babel/traverse').NodePath} path",
+        "*/",
+        "function(path) {",
+        "",
+        "}"
+      ],
+      "description": "Creates a pass function with path and node parameters"
+    }
+}
