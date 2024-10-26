@@ -98,7 +98,7 @@ function checkPass(pass)
 }
 
 // 清理代码
-function clear(jsCode, passArray, filePath = "./data/res.js")
+function clear(jsCode, passArray, filePath = "./data/clear_run_result.js")
 {
 	let ret;
 	let ast = parser(jsCode);

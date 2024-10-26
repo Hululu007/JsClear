@@ -1,6 +1,6 @@
 const types = require("@babel/types");
 
-const {jsClear, tools, LOG} = require("./src/index")
+const { jsClear, tools, LOG, CodeEval, Stats } = require("./src/index")
 
 let jsCode = tools.readFile("./example/zhihu.js")
 
@@ -46,5 +46,35 @@ function(path)
     }
 }
 
-jsClear.clear(jsCode, [ pass1, pass2 ])
+let pass3 = []
+let stats =  new Stats()
+pass3[0] = {
+    type: "IfStatement",
+    test: {
+        type: "BinaryExpression",
+        left: {
+            type: "MemberExpression",
+            object: {
+                type: "ThisExpression",
+            },
+            property: {
+                type: "StringLiteral",
+                value: "w"
+            }
+        },
+        operator: "<="
+    }
+}
+
+pass3[1] = 
+/**
+* @param {import('@babel/traverse').NodePath} path
+*/
+function(path) {
+    let binaryExpressionPath = path.get("test")
+    LOG("debug", binaryExpressionPath.node.operator)
+    LOG("debug", binaryExpressionPath.get("right").node.value)
+}
+
+jsClear.clear(jsCode, [ pass3 ])
 console.log()
