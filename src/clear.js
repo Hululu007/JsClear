@@ -3,7 +3,7 @@ const traverse = require('@babel/traverse').default;
 
 const { writeFile } = require('../Tools/file_handler');
 const { getTypes } = require('../Tools/get_types');
-const { ast2js } = require('./generator');
+const { ast2js } = require('./JsClear/generator');
 
 // 判断是否是 node 节点
 function isNode(n) {
@@ -61,7 +61,6 @@ function passCode(ast, traitNode, passFunc)
 {
 	traverse(ast, 
 	{
-		
 		enter(path)
 		{
 			let node = path.node;
@@ -84,40 +83,32 @@ function passCode(ast, traitNode, passFunc)
 }
 
 // 检查 pass
-function checkPass(pass)
+function checkPass(nodeLocation, processFunction)
 {
-	if (pass.length != 2)
+	if (getTypes(processFunction) != "function")
 	{
-		throw "pass 长度有误"
-	}
-
-	if (!isNode(pass[0]) || getTypes(pass[1]) != "function")
-	{
-		throw "pass 格式有误"
+		throw "传入的不是一个函数"
 	}
 }
 
 // 清理代码
-function clear(jsCode, passArray, filePath = "./data/clear_run_result.js")
+function clear(jsCode, nodeLocation, processFunction , filePath = "./data/clearResult.js")
 {
+	checkPass(nodeLocation, processFunction);
+
 	let ret;
 	let ast = parser(jsCode);
 
-	for (let pass of passArray)
+	ret = JSON.stringify(ast);
+
+	try
 	{
-		ret = JSON.stringify(ast);
-
-		try
-		{
-			checkPass(pass);
-
-			passCode(ast, pass[0], pass[1]);
-		}
-		catch (error)
-		{
-			writeFile(filePath, ast2js(JSON.parse(ret)));
-			throw error;
-		}
+		passCode(ast, pass[0], pass[1]);
+	}
+	catch (error)
+	{
+		writeFile(filePath, ast2js(JSON.parse(ret)));
+		throw error;
 	}
 
 	writeFile(filePath, ast2js(JSON.parse(ret)));
