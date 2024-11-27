@@ -4,17 +4,18 @@ const generator = require("@babel/generator").default;
 const fs = require('fs');
 
 const { debug } = require('./src/utiles.js');
+const { traverse: myTraverse } = require("./src/traverse.js")
 
 const data = fs.readFileSync('example/test.js', 'utf8');
 
 let ast = parser(data)
+// traverse(ast, {
+//     CallExpression(path)
+//     {
+//         path.toString()
 
-traverse(ast, {
-    CallExpression(path)
-    {
-        path.toString()
-        debug(generator(path.node).code)
-    }
-})
+//     }
+// })
 
 
+myTraverse(ast)

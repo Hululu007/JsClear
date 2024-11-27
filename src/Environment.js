@@ -1,6 +1,6 @@
 class Environment
 {
-    constructor(parentNode)
+    constructor(parentNode = null)
     {
         this.parentNode = parentNode;
         this.map = {}
@@ -13,5 +13,5 @@ class Environment
 }
 
 module.exports = {
-    ast2js
+    Environment
 };
