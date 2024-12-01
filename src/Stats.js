@@ -13,7 +13,7 @@ class Stats
         else this.stats[str]++;
     }
 
-    get(isCount=false)
+    get(isCount=true)
     {
         if (isCount) return this.stats;
         else return Object.keys(this.stats)

@@ -3,12 +3,19 @@ class Environment
     constructor(parentNode = null)
     {
         this.parentNode = parentNode;
-        this.map = {}
+        this.defineMap = {};
+        this.assignMap = {};
     }
 
-    define(name, value)
+    define(name, node)
     {
-        this.map(name, value)
+        this.defineMap[name] = node;
+    }
+
+    assign(name, node)
+    {
+        if (!Array.isArray(this.assignMap[name])) this.assignMap[name] = [];
+        this.assignMap[name].push(node);
     }
 }
 
