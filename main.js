@@ -21,7 +21,7 @@ traverse(ast, {
     }
 })
 
-myTraverse(ast, (node) => { a2.add(node.type); num-- })
+myTraverse(ast, {}, (node) => { a2.add(node.type); num-- })
 
 if (num != 0) debugger;
 for (let key of Object.keys(a1.get()))
