@@ -1,5 +1,5 @@
 const generator = require("@babel/generator").default;
-const types = require("@babel/types");
+const parser = require("@babel/parser").parse;
 
 function node2js(node, opts = { comments: true, retainLines: false })
 {
@@ -9,6 +9,12 @@ function node2js(node, opts = { comments: true, retainLines: false })
     return code
 }
 
+function js2node(js, ops = {})
+{
+    return parser(js, ops)
+}
+
 module.exports = {
-    node2js
+    node2js,
+    js2node,
 };

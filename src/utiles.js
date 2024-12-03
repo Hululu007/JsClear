@@ -29,7 +29,14 @@ function debug(label="", message="")
     }
 }
 
+// 判断是否是 node 节点
+function isNode(n) {
+    if (getType(n) != 'object' || n['type'] == undefined) return false;
+    else return true;
+}
+
 module.exports = {
 	getType,
     debug,
+    isNode,
 };

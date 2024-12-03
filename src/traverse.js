@@ -2,16 +2,14 @@
 // https://github.com/estree/estree/blob/master/es5.md#blockstatement
 // https://babel.nodejs.cn/docs/babel-parser/
 
-const { getType } = require('./utiles.js');
+const { getType, isNode } = require('./utiles.js');
 const { Environment } = require("./Environment.js");
 const { Path } = require("./Path.js");
 const { VISITOR_KEYS } = require("@babel/types");
+const { hasTraitNode } = require("./traitNode.js");
+const { Log } = require("./Log.js");
 
-// 判断是否是 node 节点
-function isNode(n) {
-    if (getType(n) != 'object' || n['type'] == undefined) return false;
-    else return true;
-}
+let log = new Log(true);
 
 // 处理
 function visitQueue(queue, traitNode, visit)
@@ -39,12 +37,13 @@ function visitNodeArray(nodeArray, traitNode, visit, parentPath)
 function traverse(node, traitNode, visit, path=null)
 {
     if (node["type"] == 'File') node = node["program"];
+    if (!isNode(node)) throw new Error("非node节点");
     if (null == path) path = new Path(node, path);
-
-    // traitNode, visit
-    visit(path);
-    console.log(path.type, path + "");
     
+    log.label(path.type, path + "")
+
+    // 判断和访问
+    if (hasTraitNode(node, traitNode)) visit(path);
 
     const keys = VISITOR_KEYS[node["type"]];
     for (const key of keys)

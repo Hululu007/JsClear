@@ -1,18 +1,19 @@
 const traverse = require('@babel/traverse').default;
-const parser = require("@babel/parser").parse;
-const generator = require("@babel/generator").default;
+const types = require("@babel/types");
 const fs = require('fs');
 
 const { debug } = require('./src/utiles.js');
 const { traverse: myTraverse } = require("./src/traverse.js")
 const { Stats } = require('./src/Stats.js');
-
-let a1 = new Stats();
-let a2 = new Stats();
+const { node2js, js2node } = require('./src/generator.js');
 
 const data = fs.readFileSync('example/test.js', 'utf8');
+
+// 测试代码
+let a1 = new Stats();
+let a2 = new Stats();
 let num = 0;
-let ast = parser(data)
+let ast = js2node(data, {})
 traverse(ast, {
     enter(path)
     {
@@ -21,7 +22,7 @@ traverse(ast, {
     }
 })
 
-myTraverse(ast, {}, (node) => { a2.add(node.type); num-- })
+myTraverse(ast, {type: '*'}, (node) => { a2.add(node.type); num-- })
 
 if (num != 0) debugger;
 for (let key of Object.keys(a1.get()))
