@@ -1,10 +1,11 @@
 class Log
-{
-    open;
-    
-    constructor(open=true)
+{ 
+    constructor(open=true, isRecord=true)
     {
-        this.open = open
+        this.open = open;
+        this.isRecord = isRecord;
+
+        this.history = "";
     }
 
     /**
@@ -16,7 +17,7 @@ class Log
     #print(content, mode)
     {
         if (this.open == false) return;
-
+        if (this.isRecord) this.history += content;
         // 更清晰
         if (content.includes('\n'))
         {

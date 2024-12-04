@@ -9,7 +9,8 @@ const { VISITOR_KEYS } = require("@babel/types");
 const { hasTraitNode } = require("./traitNode.js");
 const { Log } = require("./Log.js");
 
-let log = new Log(true);
+// 调试日志开关
+let log = new Log(false);
 
 // 处理
 function visitQueue(queue, traitNode, visit)

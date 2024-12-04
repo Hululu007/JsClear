@@ -15,7 +15,7 @@ function checkType(nodeType, traitNodeType)
         }
         return false;
     }
-    else if (typeArray.length == 1 && typeArray[1] == nodeType) return true;
+    else if (typeArray.length == 1 && typeArray[0] == nodeType) return true;
     else return false;
 }
 

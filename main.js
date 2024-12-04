@@ -1,31 +1,23 @@
-const traverse = require('@babel/traverse').default;
 const types = require("@babel/types");
-const fs = require('fs');
 
 const { debug } = require('./src/utiles.js');
-const { traverse: myTraverse } = require("./src/traverse.js")
-const { Stats } = require('./src/Stats.js');
+const { traverse } = require("./src/traverse.js")
 const { node2js, js2node } = require('./src/generator.js');
+const { WriteDir, writeFile, readFile } = require("./src/fileControl.js")
 
-const data = fs.readFileSync('example/test.js', 'utf8');
-
-// 测试代码
-let a1 = new Stats();
-let a2 = new Stats();
-let num = 0;
+const data = readFile('example/ld.js');
 let ast = js2node(data, {})
-traverse(ast, {
-    enter(path)
-    {
-        num++;
-        a1.add(path.type)
-    }
-})
 
-myTraverse(ast, {type: '*'}, (node) => { a2.add(node.type); num-- })
+let traitNode, visit;
+let wd = new WriteDir("./data", 'ld', '.js');
 
-if (num != 0) debugger;
-for (let key of Object.keys(a1.get()))
-{
-    if (a1.get()[key] != a2.get()[key]) console.log(key, a2.get()[key], a1.get()[key]);
+traitNode = {
+    type: "VariableDeclarator"
 }
+
+visit = function(path)
+{
+    console.log(path + "")
+}
+
+traverse(ast, traitNode, visit)
