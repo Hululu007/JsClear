@@ -12,7 +12,6 @@ const { Log } = require("./Log.js");
 let log = new Log(false);
 // 环境
 let currentEnvironment = null;
-let previousEnvironment = null;
 // 块作用域是否启用
 let isBlockScopeEnabled = true;
 
@@ -45,6 +44,7 @@ function visitNodeArray(key, nodeArray, traitNode, visit, parentPath)
 {
     // 检查是否更新环境
     let isUpadeEnvironment = false;
+    let previousEnvironment = null;
     if (isUpdateEnvironment(parentPath.type))
     {
         isUpadeEnvironment = true;
@@ -70,8 +70,6 @@ function visitNodeArray(key, nodeArray, traitNode, visit, parentPath)
     if (isUpadeEnvironment)
     {
         currentEnvironment = previousEnvironment;
-        previousEnvironment = null;
-
         isBlockScopeEnabled = true;
     }
 }
