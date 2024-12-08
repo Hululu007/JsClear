@@ -35,3 +35,5 @@ for (let key of Object.keys(babelStats.get()))
         throw new Error("单个节点数目不一样");
     }
 }
+
+console.log("traverse函数测试成功");

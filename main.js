@@ -17,7 +17,7 @@ traitNode = {
 
 visit = function(path)
 {
-    path.findReference()
+    path.findReference();
 }
 
 traverse(ast, traitNode, visit)

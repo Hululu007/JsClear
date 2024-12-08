@@ -22,5 +22,15 @@
             ],
             "program": "${workspaceFolder}/main.js"
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "traverseTest",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/test/traverseTest.js"
+        },
+        
     ]
 }

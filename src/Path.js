@@ -1,17 +1,15 @@
 const { node2js } = require("./generator.js");
 
-// 内部使用，查找引用
-function traverse()
-{
-
-}
-
 class Path
 {
     constructor(node, parentPath, environment)
     {
         this.node = node;
         this.type = node.type;
+        if (node.type == 'VariableDeclarator')
+        {
+            this.references = [];
+        }
         this.parentPath = parentPath;
         this.environment = environment;
         this.childPath = {};    // 浅拷贝
@@ -26,8 +24,14 @@ class Path
     findReference()
     {
         if ("VariableDeclarator" != this.type) throw new Error("非VariableDeclarator节点不能查询引用");
-        let environment = this.environment;
+        else return this.references;
+    }
 
+    defineReference(path)
+    {
+        if ("VariableDeclarator" != this.type) throw new Error("非VariableDeclarator节点不能定义引用");
+        this.references.push(path)
+        return true;
     }
 
     get(key)
