@@ -1,9 +1,13 @@
+
+const { randomName } = require("./utiles.js")
+const { writeFile, deleteFile } = require("./fileControl.js")
+
 class CodeEval 
 {
-    constructor(initCode)
+    constructor(initCode="")
     {
         this.initCode = initCode;
-        this.addCode = '';
+        this.addCode = "";
     }
 
     /**
@@ -30,9 +34,26 @@ class CodeEval
      */
     evalCode(returnVar)
     {
-        let ret;
-        eval(this.initCode + ';' + this.addCode + ';' + `ret = ${returnVar};`);
-        return ret;
+        let fileName = randomName("file");
+        let relativePath = `./src/${fileName}.js`;
+        let funcName = randomName("codeEval");
+
+        let func;
+        let code = `
+function ${funcName}()
+{
+    ${this.initCode + ';' + this.addCode};
+    return ${returnVar};
+}
+
+module.exports = { 
+    ${funcName}
+};`
+
+        writeFile(relativePath, code);
+        eval(`const { ${funcName} } = require("./" + "${fileName}" + ".js"); func = ${funcName}`)
+        deleteFile(relativePath);
+        return func();
     }
 }
 

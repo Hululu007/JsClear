@@ -15,6 +15,12 @@ function writeFile(filePath, data)
     fs.writeFileSync(filePath, data);
 }
 
+function deleteFile(filePath)
+{
+    fs.unlinkSync(filePath);
+}
+
+// 连续创建文件
 class WriteDir
 {
     constructor(dir, defaulfName="", type=".txt")
@@ -56,5 +62,6 @@ class WriteDir
 module.exports = {
     WriteDir,
     writeFile,
-    readFile
+    readFile,
+    deleteFile
 }

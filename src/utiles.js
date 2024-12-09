@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 /**
  * 获取目标类型
  * @param {*} target 
@@ -35,8 +37,17 @@ function isNode(n) {
     else return true;
 }
 
+// 随机生成名字
+function randomName(prefix="random")
+{
+    const randomBytes = crypto.randomBytes(8);
+    const randomHex = randomBytes.toString('hex');
+    return `${prefix}_${randomHex}`;
+}
+
 module.exports = {
 	getType,
     debug,
     isNode,
+    randomName,
 };
