@@ -36,7 +36,8 @@ class Path
 
     get(key)
     {
-        return this.childPath[key];
+        if (this.childPath[key] == null) new Error("未解析");
+        else return this.childPath[key];  
     }
 
     set(key, path)

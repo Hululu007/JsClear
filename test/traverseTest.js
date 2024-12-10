@@ -1,4 +1,5 @@
 const traverse = require('@babel/traverse').default;
+const parser = require("@babel/parser").parse;
 
 const { WriteDir, writeFile, readFile } = require("../src/fileControl.js")
 const { debug } = require('../src/utiles.js');
@@ -13,9 +14,10 @@ let babelStats = new Stats();
 let myStats = new Stats();
 let num = 0;
 
-let ast = js2node(data, {});
+let ast1 = js2node(data, {});
+let ast2 = parser(data, {});
 
-traverse(ast, {
+traverse(ast2, {
     enter(path)
     {
         num++;
@@ -23,7 +25,7 @@ traverse(ast, {
     }
 })
 
-myTraverse(ast, {type: '*'}, (node) => { myStats.add(node.type); num-- })
+myTraverse(ast1, {type: '*'}, (node) => { myStats.add(node.type); num-- })
 
 if (num != 0) throw new Error("节点总数目不一样");
 

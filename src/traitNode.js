@@ -1,26 +1,42 @@
 const { getType, isNode } = require('./utiles.js');
 
+// "|"
+function parserOr(nodeType, traitNodeType)
+{
+    const typeArray = traitNodeType.split('|');
+    for (const type of typeArray)
+    {
+        if (type == nodeType) return true;
+    }
+    return false;
+}
+
+// "!"
+function parserNot(nodeType, traitNodeType)
+{
+    const typeArray = traitNodeType.split('!');
+    return typeArray[1] != nodeType
+}
+
+// 解析traitNodeType
+function parse(nodeType, traitNodeType)
+{
+    if (traitNodeType.includes('|')) return parserOr(nodeType, traitNodeType);
+    else if (traitNodeType.includes('!')) return parserNot(nodeType, traitNodeType);
+    else return nodeType == traitNodeType;
+}   
+
 // 检查类型是否相等
 function checkType(nodeType, traitNodeType)
 {
     if (traitNodeType == '*') return true;
     if (typeof traitNodeType != "string") return false;
     
-    const typeArray = traitNodeType.split('|');
-    if (typeArray.length >= 2)
-    {
-        for (const type of typeArray)
-        {
-            if (type == nodeType) return true;
-        }
-        return false;
-    }
-    else if (typeArray.length == 1 && typeArray[0] == nodeType) return true;
-    else return false;
+    return parse(nodeType, traitNodeType);
 }
 
 // 判断是否符合特征
-function hasTraitNode(node, traitNode) {
+function isTraitNode(node, traitNode) {
     if (!isNode(traitNode)) throw new Error("传入的特征节点不是node");
 
 	if (!checkType(node['type'], traitNode['type'])) return false;   // 提升效率
@@ -54,7 +70,7 @@ function hasTraitNode(node, traitNode) {
                     if (isNode(traitNode[key][i]))
                     {
                         // 递归判断子树
-                        return hasTraitNode(node[key], traitNode[key]);
+                        return isTraitNode(node[key], traitNode[key]);
                     }
 				}
 			} 
@@ -66,7 +82,7 @@ function hasTraitNode(node, traitNode) {
         else 
         {
 			// 递归判断子树
-            return hasTraitNode(node[key], traitNode[key]);
+            return isTraitNode(node[key], traitNode[key]);
 		}
 	}
 
@@ -74,5 +90,5 @@ function hasTraitNode(node, traitNode) {
 }
 
 module.exports = {
-	hasTraitNode,
+	isTraitNode,
 };

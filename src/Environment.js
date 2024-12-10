@@ -29,6 +29,9 @@ class Environment
     }
 }
 
+let environmentTypes = ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement", "IfStatement"];
+
 module.exports = {
-    Environment
+    Environment,
+    environmentTypes
 };

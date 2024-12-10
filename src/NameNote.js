@@ -9,7 +9,7 @@ class NameNote
     new()
     {
         this.count++;
-        return this.prefix + this.count;
+        return this.prefix + "_" +this.count;
     }
 }
 

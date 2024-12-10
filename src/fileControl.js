@@ -46,7 +46,7 @@ class WriteDir
         if (name == undefined) 
         {
             this.writeCount++;
-            name = this.defaulfName + this.writeCount;
+            name = this.defaulfName + "_" + this.writeCount;
         }
         else
         {
