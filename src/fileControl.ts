@@ -1,13 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-function readFile(filePath, encode='utf8')
+function readFile(filePath: string, encoding: BufferEncoding = 'utf8')
 {
-    const data = fs.readFileSync(filePath, encode);
+    const data: string = fs.readFileSync(filePath, encoding);
     return data;
 }
 
-function writeFile(filePath, data)
+function writeFile(filePath: string, data: string)
 {
     let dirPath = path.dirname(filePath);
     !fs.existsSync(dirPath) && fs.mkdirSync(dirPath);
@@ -15,7 +15,7 @@ function writeFile(filePath, data)
     fs.writeFileSync(filePath, data);
 }
 
-function deleteFile(filePath)
+function deleteFile(filePath: string)
 {
     fs.unlinkSync(filePath);
 }
@@ -23,7 +23,12 @@ function deleteFile(filePath)
 // 连续创建文件
 class WriteDir
 {
-    constructor(dir, defaulfName="", type=".txt")
+    private dir: string;
+    private defaulfName: string;
+    private type: string;
+    private writeCount: number;
+
+    constructor(dir: string, defaulfName="", type=".txt")
     {
         if (typeof dir != "string") throw new Error("传入类型有误！");
 
@@ -33,7 +38,7 @@ class WriteDir
         this.writeCount = 0;
     }
 
-    writeFile(filePath, data)
+    writeFile(filePath: string, data: string)
     {
         let dirPath = path.dirname(filePath);
         !fs.existsSync(dirPath) && fs.mkdirSync(dirPath);
@@ -41,7 +46,7 @@ class WriteDir
         fs.writeFileSync(filePath, data);
     }
 
-    write(data, name)
+    write(data: string, name: string)
     {
         if (name == undefined) 
         {
@@ -59,7 +64,7 @@ class WriteDir
     }
 }
 
-module.exports = {
+export {
     WriteDir,
     writeFile,
     readFile,

@@ -1,7 +1,7 @@
-const { getType, isNode } = require('./utiles.js');
+import { getType, isNode }  from "./utiles";
 
 // "|"
-function parserOr(nodeType, traitNodeType)
+function parserOr(nodeType: string, traitNodeType: string)
 {
     const typeArray = traitNodeType.split('|');
     for (const type of typeArray)
@@ -12,14 +12,14 @@ function parserOr(nodeType, traitNodeType)
 }
 
 // "!"
-function parserNot(nodeType, traitNodeType)
+function parserNot(nodeType: string, traitNodeType: string)
 {
     const typeArray = traitNodeType.split('!');
     return typeArray[1] != nodeType
 }
 
 // 解析traitNodeType
-function parse(nodeType, traitNodeType)
+function parse(nodeType: string, traitNodeType: string)
 {
     if (traitNodeType.includes('|')) return parserOr(nodeType, traitNodeType);
     else if (traitNodeType.includes('!')) return parserNot(nodeType, traitNodeType);
@@ -27,7 +27,7 @@ function parse(nodeType, traitNodeType)
 }   
 
 // 检查类型是否相等
-function checkType(nodeType, traitNodeType)
+function checkType(nodeType: string, traitNodeType: string)
 {
     if (traitNodeType == '*') return true;
     if (typeof traitNodeType != "string") return false;
@@ -36,7 +36,7 @@ function checkType(nodeType, traitNodeType)
 }
 
 // 判断是否符合特征
-function isTraitNode(node, traitNode) {
+function isTraitNode(node: any, traitNode: any) {
     if (!isNode(traitNode)) throw new Error("传入的特征节点不是node");
 
 	if (!checkType(node['type'], traitNode['type'])) return false;   // 提升效率
@@ -89,6 +89,6 @@ function isTraitNode(node, traitNode) {
 	return true;
 }
 
-module.exports = {
+export {
 	isTraitNode,
 };

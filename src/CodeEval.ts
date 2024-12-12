@@ -1,44 +1,36 @@
-
-const { randomName } = require("./utiles.js")
-const { writeFile, deleteFile } = require("./fileControl.js")
+import { writeFile, deleteFile } from "./fileControl";
+import { randomName } from "./utiles";
 
 class CodeEval 
 {
+    private initCode: string;
+    private addCode: string;
+
     constructor(initCode="")
     {
         this.initCode = initCode;
         this.addCode = "";
     }
 
-    /**
-     * 添加代码
-     * @param {string} code 
-     */
-    add(code)
+    add(code: string)
     {
         this.addCode += (code + ';');
     }
 
-    /**
-     * 清楚添加的代码
-     */
     clearAddCode()
     {
         this.addCode = '';
     }
 
-    /**
-     * 创建一个独立的环境执行
-     * @param {string} returnVar 
-     * @returns {object}
-     */
-    evalCode(returnVar)
+    evalCode(returnVar: string)
     {
+        if (typeof returnVar != "string") throw new Error("传入的类型需要时字符串")
+
         let fileName = randomName("file");
         let relativePath = `./src/${fileName}.js`;
         let funcName = randomName("codeEval");
 
-        let func;
+        let func = () => { console.log("默认"); };
         let code = `
 function ${funcName}()
 {
@@ -57,6 +49,6 @@ module.exports = {
     }
 }
 
-module.exports = { 
+export { 
     CodeEval
 };

@@ -1,5 +1,16 @@
+const enum PRINT_MODE
+{
+    ERROR,
+    DEBUG,
+    LABEL
+}
+
 class Log
 { 
+    public open: boolean;
+    public isRecord: boolean;
+    private history: string;
+
     constructor(open=true, isRecord=true)
     {
         this.open = open;
@@ -8,13 +19,7 @@ class Log
         this.history = "";
     }
 
-    /**
-     * 控制打印
-     * @param {string} content 
-     * @param {string} mode 
-     * @returns 
-     */
-    #print(content, mode)
+    private print(content: string, mode: PRINT_MODE)
     {
         if (this.open == false) return;
         if (this.isRecord) this.history += content;
@@ -30,7 +35,7 @@ class Log
         }
 
         switch (mode) {
-            case "error":
+            case PRINT_MODE.ERROR:
                 console.error(content)
                 break;
             default:
@@ -39,37 +44,30 @@ class Log
         }
     }
 
-    /**
-     * @param {*} message 
-     */
-    debug(message)
+    debug(message: string)
     {
         let content = `[debug] ${message}`;
-        this.#print(content, "debug");
+        this.print(content, PRINT_MODE.DEBUG);
     }
 
-    /**
-     * @param {*} message 
-     */
-    error(message)
+    error(message: string)
     {
         let content = `[error] ${message}`;
-        this.#print(content, error);
+        this.print(content, PRINT_MODE.ERROR);
     }
     
-    
-    /**
-     * 自定义标签
-     * @param {string} label 
-     * @param {*} message 
-     */
     label(label="label", message="")
     {
         let content = `[${label}] ${message}`;
-        this.#print(content, "log");
+        this.print(content, PRINT_MODE.LABEL);
+    }
+
+    getHistory()
+    {
+        return this.history;
     }
 }
 
-module.exports = {
+export {
     Log
 }

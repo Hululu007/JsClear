@@ -1,14 +1,15 @@
 class Stats
 {
+    private stats: { [key: string]: number };
     constructor()
     {
         this.stats = {};
     }
 
-    add(str)
+    add(str: string): void
     {
-        if (typeof str != "string") throw("TypeStats 传入类型有误");
-
+        if (typeof str != "string") throw("传入类型有误");
+    
         if (this.stats[str] == undefined) this.stats[str] = 1;
         else this.stats[str]++;
     }
@@ -20,6 +21,6 @@ class Stats
     }
 }
 
-module.exports = {
+export = {
     Stats,
 };
