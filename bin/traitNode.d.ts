@@ -1,2 +1,3 @@
-declare function isTraitNode(node: any, traitNode: any): boolean;
+import { Node } from "./Path";
+declare function isTraitNode(node: Node, traitNode: Node): boolean;
 export { isTraitNode, };

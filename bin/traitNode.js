@@ -46,6 +46,32 @@ function checkType(nodeType, traitNodeType) {
         return nodeType == traitNodeType;
     }
 }
+// 解析traitNode中的数组
+function parseArray(nodeArray, traitNodeArray) {
+    if (traitNodeArray.length % 2 != 0)
+        new Error("传入的traitNode格式不对.");
+    for (let i = 0; i < traitNodeArray.length; i += 2) {
+        let index = traitNodeArray[i];
+        let traitNode = traitNodeArray[i + 1];
+        if ((0, utiles_1.isNode)(traitNode)) {
+            if (!isTraitNode(nodeArray[index], traitNode))
+                return false;
+        }
+        else {
+            if (nodeArray[index] != traitNode)
+                return false;
+        }
+    }
+    return true;
+}
+// 解析traitNode中的不包含子node的object
+function parseObject(node, traitNode) {
+    for (let key in traitNode) {
+        if (traitNode[key] != node[key])
+            return false;
+    }
+    return true;
+}
 // 判断是否符合特征
 function isTraitNode(node, traitNode) {
     if (!(0, utiles_1.isNode)(traitNode))
@@ -61,23 +87,12 @@ function isTraitNode(node, traitNode) {
         if (!(0, utiles_1.isNode)(traitNode[key])) {
             // 不包含子node的object
             if ((0, utiles_1.getType)(traitNode[key]) == 'object') {
-                for (let secondaryKey in traitNode[key]) {
-                    if (traitNode[key][secondaryKey] != node[key][secondaryKey])
-                        return false;
-                }
+                if (!parseObject(node[key], traitNode[key]))
+                    return false;
             }
             else if ((0, utiles_1.getType)(traitNode[key]) == 'array') {
-                for (let i = 0; i < traitNode[key].length; ++i) {
-                    // 可能会有 [, 1] 这样的
-                    if (traitNode[key][i] == null) {
-                        if (node[key][i] != null)
-                            return false;
-                    }
-                    if ((0, utiles_1.isNode)(traitNode[key][i])) {
-                        // 递归判断子树
-                        return isTraitNode(node[key], traitNode[key]);
-                    }
-                }
+                if (!parseArray(node[key], traitNode[key]))
+                    return false;
             }
             else {
                 if (traitNode[key] != node[key])
@@ -86,7 +101,8 @@ function isTraitNode(node, traitNode) {
         }
         else {
             // 递归判断子树
-            return isTraitNode(node[key], traitNode[key]);
+            if (!isTraitNode(node[key], traitNode[key]))
+                return false;
         }
     }
     return true;

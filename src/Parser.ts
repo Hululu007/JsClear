@@ -1,13 +1,19 @@
 import { TOKEN, TOEKN_TYPE }  from "./Scanner";
 
+interface ParserResult
+{
+    capture: Array<string>,
+    uncaught: Array<string>
+}
+
 class Parser 
 {
     public tokens: Array<TOKEN>
     public previous: number;
     public current: number;
-    public parseResult: Array<string | TOEKN_TYPE>;
+    public parseResult: ParserResult;
 
-    private stack: Array<string | TOEKN_TYPE>;
+    private stack: Array<string | boolean>;
     
     constructor(tokens: Array<TOKEN>)
     {
@@ -15,10 +21,10 @@ class Parser
         this.previous = 0;
         this.current = 0;
         this.stack = [];
-        this.parseResult = [];
+        this.parseResult = { capture:[], uncaught: []};
     }
 
-    push(value: string | TOEKN_TYPE)
+    push(value: string | boolean)
     {
         this.stack.push(value);
     }
@@ -33,30 +39,37 @@ class Parser
         return this.stack[this.stack.length - 1];
     }
 
+    // "("
+    parseLeftParen()
+    {
+
+    }
+
+    // ")"
+    parseRightParen()
+    {
+
+    }
+
     // "|"
     parseOr()
     {
-
+        
     }
 
     // "!"
     parseNot()
     {
-        
+        this.push(false);
+        this.advance();
         this.parse();
-        this.push(TOEKN_TYPE.NOT);
-    }
-
-    // "&"
-    parseAnd()
-    {
-
     }
 
     parseNode()
     {
         this.stack.push(this.pick().value);
         this.advance();
+        this.parse();
     }
 
     pick(count=0)
@@ -81,12 +94,10 @@ class Parser
             case TOEKN_TYPE.NOT:
                 this.parseNot();
                 break;
-            case TOEKN_TYPE.AND:
-                this.parseAnd();
-                break;
             case TOEKN_TYPE.OR:
                 this.parseOr();
                 break;
+            case TOEKN_TYPE.LEFT_PAREN:
 
             default:
                 throw new Error("未知指令.");

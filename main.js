@@ -1,7 +1,5 @@
 const types = require("@babel/types");
 
-
-
 const { Tools, JsClear } = require('./bin/index.js'); 
 const  { CodeEval, NameNote, WriteDir, writeFile, readFile } = Tools;
 const  { isTraitNode, node2js, js2node, traverse } = JsClear;
@@ -10,15 +8,15 @@ const  { isTraitNode, node2js, js2node, traverse } = JsClear;
 let data = readFile('example/ld.js');
 let ast = js2node(data)
 
-let traitNode, visit;
+let traitNode;
 let wd = new WriteDir("./data", 'ld', '.js');
 let local = new NameNote("local");
 
+// 改名
 traitNode = {
     type: "VariableDeclarator"
 }
-visit = function(path)
-{
+traverse(ast, traitNode, (path) => {
     let temp = local.new();
     let node = path.node;
     for (let i of path.findReference())
@@ -26,45 +24,41 @@ visit = function(path)
         i.node.name = temp;
     }
     node.id.name = temp;
-}
-traverse(ast, traitNode, visit);
+});
 data = node2js(ast);
 wd.write(data);
 ast = js2node(data);
 
+// 字符串编码
 traitNode = {
-    type: "StringLiteral"
+    type: "StringLiteral",
 }
-visit = function(path)
-{
+
+traverse(ast, traitNode, (path) => {
     let node = types.stringLiteral(path.node.value);
     path.replaceWith(node, true);
-    console.log(path + "")
-}
-traverse(ast, traitNode, visit)
-
+})
 wd.write(node2js(ast));
 
-
+// for
 traitNode = {
     type: "ForStatement"
 }
-visit = function(path)
+traverse(ast, traitNode, (path) =>
 {
     let node = path.node;
     if (node["body"]["type"] != "BlockStatement")
     {
         node["body"] = js2node("{" + node2js(node["body"]) + "}")["body"][0]
     }
-}
-traverse(ast, traitNode, visit);
+});
+
 traitNode = {
     type: "LogicalExpression",
     operator: "||",
 }
 let code = ''
-visit = function(path)
-{
+traverse(ast, traitNode, (path) => {
 
     let rightTraitNode_1 = {
         type: "LogicalExpression",
@@ -97,8 +91,7 @@ visit = function(path)
 
         traverse(ast, traitNode, (path)=>{ path.replaceWith(js2node(code)["body"][0], true) });
     }
-}
-traverse(ast, traitNode, visit);
+});
 wd.write(node2js(ast));
 
 

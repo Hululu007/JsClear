@@ -3,7 +3,8 @@ const enum TOEKN_TYPE
     NODE,
     OR,
     NOT,
-    AND,
+    LEFT_PAREN,
+    RIGHT_PAREN
 }
 
 interface TOKEN {
@@ -34,10 +35,16 @@ class Scanner
         return { type: TOEKN_TYPE.OR, value: '|' };
     }
 
-    static newAnd(): TOKEN
+    static newLeftParen(): TOKEN
     {
-        return { type: TOEKN_TYPE.AND, value: '&' };
+        return { type: TOEKN_TYPE.LEFT_PAREN, value: '(' };
     }
+
+    static newRightParen(): TOKEN
+    {
+        return { type: TOEKN_TYPE.RIGHT_PAREN, value: ')' };
+    }
+
 
     static newNode(value: string): TOKEN
     {
@@ -93,15 +100,21 @@ class Scanner
                     this.advance();
                     break;
                 }
-                case '&':
-                {
-                    tokens.push(Scanner.newAnd());
-                    this.advance();
-                    break;
-                }
                 case '|':
                 {
                     tokens.push(Scanner.newOr());
+                    this.advance();
+                    break;
+                }
+                case '(':
+                {
+                    tokens.push(Scanner.newLeftParen());
+                    this.advance();
+                    break;
+                }
+                case ')':
+                {
+                    tokens.push(Scanner.newRightParen());
                     this.advance();
                     break;
                 }
