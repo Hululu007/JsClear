@@ -21,6 +21,6 @@ class Stats
     }
 }
 
-export = {
+export {
     Stats,
 };

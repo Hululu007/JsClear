@@ -13,12 +13,15 @@ import { Environment }  from "./Environment";
 let log = new Log(false);
 
 // 环境
-let currentEnvironment: Environment | null;
+let currentEnvironment: Environment;
 // 块作用域是否启用
 let isBlockScopeEnabled: boolean;
 
+let currentPath: Path;
+
 // 声明
 type VisitCallBack = (path: Path) => void;
+type DealWithPath = (path: Path, traitNode: Node, visit: VisitCallBack) => void;
 
 // 调试信息
 function debugLog(path: Path)
@@ -48,83 +51,182 @@ function isCreateEnvironment(path: Path)
     return false;
 }
 
-// 更新path
-function updatePath(path: Path)
+// path.findReference 
+function implementPathFindReference(path: Path, traitNode: Node, visit: VisitCallBack)
 {
-    // 标识符递归查找定义出，设置引用
-    if (path.type == 'VariableDeclarator')
+    path.findReference = function()
     {
-        path.findReference = function()
+        // 每次都从当前环境重新解析
+        function updateEnvDefineVar(path: Path, traitNode: Node, visit: VisitCallBack)
         {
-            return path;
+            if (path.type == "VariableDeclarator")
+            {
+                // 清除上次缓存
+                path.clearReference();
+                currentEnvironment.defineVariable(path);
+            }
+            else if (path.type == "Identifier" && path.parentPath!.type != "VariableDeclarator")
+            {
+                let name = path.node["name"];
+                let varPath = currentEnvironment.findVariable(name);
+                if (varPath != null)
+                {
+                    varPath.addReference(path);
+                }
+            }
         }
+        _traverse(currentEnvironment.path, traitNode, visit, updateEnvDefineVar, false);
+
+        // 解析后置空
+        currentEnvironment.definePaths = null;
+
+        return this.getReferencePaths();
+    }
+}
+
+// path.replaceWith
+function implementPathReplaceWith(path: Path, traitNode: Node, visit: VisitCallBack)
+{
+    path.replaceWith = function(newNode: Node, isSkip: boolean)
+    {
+        if (!isNode(newNode)) throw new Error("需要传入一个node.");
+        if (typeof isSkip != "boolean") throw new Error("第二个参数isSkip必须是一个布尔值.");
+
+        let parentPath = this.parentPath!;
+        this.node = newNode;
+        this.type = newNode.type;
+        this.isSkip = isSkip;
+        this.clearChildPath();
+        this.clearReference();
+
+        // 修复父node和父path
+        let keys = VISITOR_KEYS[parentPath.type];
+        for (let key of keys)
+        {
+            let childPath = parentPath.get(key);
+
+            if (childPath == undefined) continue;
+            else if (Array.isArray(childPath))
+            {
+                let index;
+                for (index = 0; index < childPath.length; index++)
+                {
+                    if (childPath[index].node == newNode)
+                    {
+                        parentPath.node[key][index] = newNode;
+                        childPath[index] = this;
+                        parentPath.setArray(key, childPath);
+                    }
+                }
+            }
+            else
+            {
+                if (childPath.node == newNode)
+                {
+                    parentPath.node[key] = newNode;
+                    parentPath.set(key, this);
+                }
+            }
+        }
+
+        if (currentPath != this) throw new Error("不是当前节点不能替换，不可以改变历史");
+        _traverse(this, { type: "ovo" }, ()=>{}, ()=>{}, isSkip);
+    }
+}
+
+// 为path添加一些方法
+function updatePath(path: Path, traitNode: Node, visit: VisitCallBack)
+{
+    let type = path.type
+    if (type == 'VariableDeclarator')
+    {
+        implementPathFindReference(path, traitNode, visit)
     }
 
-    path.replaceWith = function(node: Node)
+    if (type != "Program" && type != "File")
     {
-        
+        implementPathReplaceWith(path, traitNode, visit)
+    }
+}
+
+// 访问
+function visitPath(path: Path, traitNode: Node, visit: VisitCallBack)
+{
+    let node: Node = path.node;
+
+    // 调试日志
+    debugLog(path);
+
+    // 判断是否符合特征码然后访问
+    if (isTraitNode(node, traitNode) && path.isSkip == false) 
+    {
+        updatePath(path, traitNode, visit);
+        visit(path);
     }
 }
 
 // 深度优先
-function visitQueue(queue: Array<Path>, traitNode: Node, visit: VisitCallBack)
+function visitQueue(queue: Array<Path>, traitNode: Node, visit: VisitCallBack, dealWithPath: DealWithPath, isNewPathSetSkip: boolean)
 {
     for (let index = 0; index < queue.length; index++)
     {
         let path = queue[index];
-        _traverse(path.node, traitNode, visit, path)
+        _traverse(path, traitNode, visit, dealWithPath, isNewPathSetSkip);
     }
 }
 
 // 处理单个node
-function visitNodeSingle(parentPath: Path, key: string, node:Node, traitNode: Node, visit: VisitCallBack)
+function visitNodeSingle(parentPath: Path, key: string, node:Node, traitNode: Node, visit: VisitCallBack, dealWithPath: DealWithPath, isNewPathSetSkip: boolean)
 {
-    // 封装成Path
-    let path = new Path(node, parentPath, currentEnvironment);
-    // 设置childPath
-    parentPath.set(key, path);
+    // 如果已经有了Path就不再创建了
+    let path = parentPath.get(key);
+    if (path == undefined)
+    {
+        // 封装成Path
+        path = new Path(node, parentPath, isNewPathSetSkip);
+        // 设置childPath
+        parentPath.set(key, path);
+    }
+
     // 深度优先遍历，方便解析作用域
-    visitQueue([path], traitNode, visit);
+    visitQueue([path], traitNode, visit, dealWithPath, isNewPathSetSkip);
 }
 
 // 处理node数组
-function visitNodeArray(parentPath: Path, key: string, nodeArray: Array<Node>, traitNode: Node, visit: VisitCallBack)
+function visitNodeArray(parentPath: Path, key: string, nodeArray: Array<Node>, traitNode: Node, visit: VisitCallBack, dealWithPath: DealWithPath, isNewPathSetSkip: boolean)
 {
-    // 把子node封装成path，入队
-    let queue: Array<Path> = [];
-    for (let index = 0; index < nodeArray.length; ++index)
+    // 如果已经有了queue就不再创建了
+    let queue: Array<Path> = parentPath.get(key);
+    if (undefined == queue)
     {
-        // 封装成Path
-        let path = new Path(nodeArray[index], parentPath, currentEnvironment);
-        queue.push(path);
+        // 把子node封装成path，入队
+        queue = [];
+        for (let index = 0; index < nodeArray.length; ++index)
+        {
+            // 封装成Path
+            let path = new Path(nodeArray[index], parentPath, isNewPathSetSkip);
+            queue.push(path);
+        }
+
+        // 设置childPath
+        parentPath.setArray(key, queue);
     }
 
-    // 设置childPath
-    parentPath.setArray(key, queue);
-
     // 深度优先遍历，方便解析作用域
-    visitQueue(queue, traitNode, visit);
+    visitQueue(queue, traitNode, visit, dealWithPath, isNewPathSetSkip);
 }
 
 // 递归遍历树
-function _traverse(node: Node, traitNode: Node, visit: VisitCallBack, path: Path | null)
+function _traverse(path: Path, traitNode: Node, visit: VisitCallBack, dealWithPath: DealWithPath, isNewPathSetSkip: boolean)
 {
-    // 首次进来初始化一些值，最外层不设置环境
-    if (null == path) 
-    {
-        // 头节点不设置replaceWith函数
-        path = new Path(node, path, null);
-        currentEnvironment = new Environment(path, null);
-    }
-    
-    updatePath(path);
-    // 调试日志
-    debugLog(path);
-    // 判断是否符合特征码然后加入访问队列
-    if (isTraitNode(node, traitNode)) visit(path);
+    let node = path.node;
+
+    // 遍历到的每个Path在这里处理
+    currentPath = path;
+    dealWithPath(path, traitNode, visit);
 
     // 保存来时环境
-    let previousEnvironment: Environment | null = null;
+    let previousEnvironment: Environment;
     // 检查是否更新环境
     let isUpadeEnvironment = false;
     if (isCreateEnvironment(path))
@@ -141,14 +243,14 @@ function _traverse(node: Node, traitNode: Node, visit: VisitCallBack, path: Path
         let childNode = node[key];
         if (!childNode || childNode.length == 0) continue;
 
-        if (!Array.isArray(childNode)) visitNodeSingle(path, key, childNode, traitNode, visit);
-        else visitNodeArray(path, key, childNode, traitNode, visit);
+        if (!Array.isArray(childNode)) visitNodeSingle(path, key, childNode, traitNode, visit, dealWithPath, isNewPathSetSkip);
+        else visitNodeArray(path, key, childNode, traitNode, visit, dealWithPath, isNewPathSetSkip);
     }
 
     // 如果更新了环境，子树都遍历完时，还原环境
     if (isUpadeEnvironment)
     {
-        currentEnvironment = previousEnvironment;
+        currentEnvironment = previousEnvironment!;
         isBlockScopeEnabled = true;
     }
 }
@@ -159,14 +261,16 @@ function traverse(node: Node, traitNode: any, visit: VisitCallBack)
     if (node["type"] == 'File') node = node["program"];
     if (!isNode(node)) throw new Error("非node节点");
 
-    // 每次调用traverse的时候清理下缓存|初始化
-    currentEnvironment = null;
+    // 初始化
+    let path = new Path(node, null);
+    currentEnvironment = new Environment(path, null);;
     isBlockScopeEnabled = true;
-
-    // 第一次进来时，path是null
-    _traverse(node, traitNode, visit, null);
+    
+    _traverse(path, traitNode, visit, visitPath, false);
 }
 
 export {
 	traverse,
+    _traverse,
 };
+

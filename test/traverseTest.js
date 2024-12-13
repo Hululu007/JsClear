@@ -1,23 +1,20 @@
 const traverse = require('@babel/traverse').default;
 const parser = require("@babel/parser").parse;
 
-// const { WriteDir, writeFile, readFile } = require("../src/fileControl.ts");
-// const { debug } = require('../src/utiles.js');
-// const { traverse: myTraverse } = require("../src/traverse.js")
-// const { Stats } = require('../src/Stats.js');
-// const { node2js, js2node } = require('../src/generator.js');
+const { Tools, JsClear } = require('../bin/index.js'); 
+const  { CodeEval, Stats, NameNote, WriteDir, writeFile, readFile } = Tools;
+const  { isTraitNode, node2js, js2node, traverse:myTraverse } = JsClear;
 
-// const data = readFile('./example/n1.js');
-const data = ""
+const data = readFile('./example/n1.js');
 
 // 测试代码
-// let babelStats = new Stats();
-// let myStats = new Stats();
+let babelStats = new Stats();
+let myStats = new Stats();
 let num = 0;
 
-// let ast1 = js2node(data, {});
-// let ast2 = parser(data, {});
-ast2 = {}
+let ast1 = js2node(data, {});
+let ast2 = parser(data, {});
+
 traverse(ast2, {
     enter(path)
     {

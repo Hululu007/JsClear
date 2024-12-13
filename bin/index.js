@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.JsClear = exports.Tools = void 0;
+const traitNode_1 = require("./traitNode");
+const generator_1 = require("./generator");
+const traverse_1 = require("./traverse");
+const CodeEval_1 = require("./CodeEval");
+const Stats_1 = require("./Stats");
+const NameNote_1 = require("./NameNote");
+const fileControl_1 = require("./fileControl");
+let Tools = { CodeEval: CodeEval_1.CodeEval, Stats: Stats_1.Stats, NameNote: NameNote_1.NameNote, WriteDir: fileControl_1.WriteDir, writeFile: fileControl_1.writeFile, readFile: fileControl_1.readFile };
+exports.Tools = Tools;
+let JsClear = { isTraitNode: traitNode_1.isTraitNode, node2js: generator_1.node2js, js2node: generator_1.js2node, traverse: traverse_1.traverse };
+exports.JsClear = JsClear;

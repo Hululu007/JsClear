@@ -1,39 +1,53 @@
 import { getType, isNode }  from "./utiles";
+import { Scanner }  from "./Scanner";
+import { Parser }  from "./Parser";
 
-// "|"
-function parserOr(nodeType: string, traitNodeType: string)
-{
-    const typeArray = traitNodeType.split('|');
-    for (const type of typeArray)
-    {
-        if (type == nodeType) return true;
-    }
-    return false;
-}
-
-// "!"
-function parserNot(nodeType: string, traitNodeType: string)
-{
-    const typeArray = traitNodeType.split('!');
-    return typeArray[1] != nodeType
-}
-
-// 解析traitNodeType
-function parse(nodeType: string, traitNodeType: string)
-{
-    if (traitNodeType.includes('|')) return parserOr(nodeType, traitNodeType);
-    else if (traitNodeType.includes('!')) return parserNot(nodeType, traitNodeType);
-    else return nodeType == traitNodeType;
-}   
 
 // 检查类型是否相等
+// function checkType(nodeType: string, traitNodeType: string)
+// {
+//     if (typeof traitNodeType != "string") throw new Error("传入的类型不是字符串.");
+//     if (traitNodeType == '*') return true;
+//     if (!traitNodeType.includes('|') && !traitNodeType.includes('&') && !traitNodeType.includes('!'))
+//     {
+//         return nodeType == traitNodeType;
+//     }
+
+//     let scanner = new Scanner(traitNodeType);
+//     let tokens = scanner.getTokens();
+//     let parser = new Parser(tokens);
+//     return parser.check(nodeType);
+// }
+
 function checkType(nodeType: string, traitNodeType: string)
 {
+    if (typeof traitNodeType != "string") throw new Error("传入的类型不是字符串.");
     if (traitNodeType == '*') return true;
-    if (typeof traitNodeType != "string") return false;
-    
-    return parse(nodeType, traitNodeType);
+    if (traitNodeType.includes('|'))
+    {
+        if (traitNodeType.includes('&') || !traitNodeType.includes('!')) throw new Error("暂不支持两个标识符");
+        let types = traitNodeType.split('|');
+        for (let type of types)
+        {
+            if (type == nodeType) return true;
+        }
+        return false;
+    }
+    else if (traitNodeType.includes('!'))
+    {
+        if (traitNodeType.includes('&') || !traitNodeType.includes('|')) throw new Error("暂不支持两个标识符");
+        let types = traitNodeType.split('|');
+        if (types.length != 2) throw new Error("暂不支持多个!");
+
+        if (types[1] != nodeType) return true;
+        else return false;
+    }
+    else
+    {
+        return nodeType == traitNodeType;
+    }
 }
+
 
 // 判断是否符合特征
 function isTraitNode(node: any, traitNode: any) {
