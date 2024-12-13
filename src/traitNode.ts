@@ -1,7 +1,7 @@
 import { getType, isNode }  from "./utiles";
 import { Node }  from "./Path";
 import { Scanner }  from "./Scanner";
-import { Parser }  from "./Parser";
+// import { Parser }  from "./Parser";
 
 
 // 检查类型是否相等 !
