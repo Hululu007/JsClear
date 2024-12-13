@@ -1,4 +1,4 @@
-const enum TOEKN_TYPE
+const enum TOKEN_TYPE
 {
     NODE,
     OR,
@@ -8,7 +8,7 @@ const enum TOEKN_TYPE
 }
 
 interface TOKEN {
-    type: TOEKN_TYPE,
+    type: TOKEN_TYPE,
     value: string
 }
 
@@ -27,28 +27,28 @@ class Scanner
 
     static newNot(): TOKEN
     {
-        return { type: TOEKN_TYPE.NOT, value: '!' };
+        return { type: TOKEN_TYPE.NOT, value: '!' };
     }
 
     static newOr(): TOKEN
     {
-        return { type: TOEKN_TYPE.OR, value: '|' };
+        return { type: TOKEN_TYPE.OR, value: '|' };
     }
 
     static newLeftParen(): TOKEN
     {
-        return { type: TOEKN_TYPE.LEFT_PAREN, value: '(' };
+        return { type: TOKEN_TYPE.LEFT_PAREN, value: '(' };
     }
 
     static newRightParen(): TOKEN
     {
-        return { type: TOEKN_TYPE.RIGHT_PAREN, value: ')' };
+        return { type: TOKEN_TYPE.RIGHT_PAREN, value: ')' };
     }
 
 
     static newNode(value: string): TOKEN
     {
-        return { type: TOEKN_TYPE.NODE, value: value };
+        return { type: TOKEN_TYPE.NODE, value: value };
     }
 
     private pick(count=0)
@@ -139,5 +139,5 @@ class Scanner
 export {
 	Scanner,
     TOKEN,
-    TOEKN_TYPE,
+    TOKEN_TYPE,
 };
