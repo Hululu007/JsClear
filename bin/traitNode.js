@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isTraitNode = isTraitNode;
 const utiles_1 = require("./utiles");
-// 检查类型是否相等
+// import { Parser }  from "./Parser";
+// 检查类型是否相等 !
 // function checkType(nodeType: string, traitNodeType: string)
 // {
 //     if (typeof traitNodeType != "string") throw new Error("传入的类型不是字符串.");
@@ -22,7 +23,7 @@ function checkType(nodeType, traitNodeType) {
     if (traitNodeType == '*')
         return true;
     if (traitNodeType.includes('|')) {
-        if (traitNodeType.includes('&') || !traitNodeType.includes('!'))
+        if (traitNodeType.includes('!'))
             throw new Error("暂不支持两个标识符");
         let types = traitNodeType.split('|');
         for (let type of types) {
@@ -32,9 +33,9 @@ function checkType(nodeType, traitNodeType) {
         return false;
     }
     else if (traitNodeType.includes('!')) {
-        if (traitNodeType.includes('&') || !traitNodeType.includes('|'))
+        if (traitNodeType.includes('|'))
             throw new Error("暂不支持两个标识符");
-        let types = traitNodeType.split('|');
+        let types = traitNodeType.split('!');
         if (types.length != 2)
             throw new Error("暂不支持多个!");
         if (types[1] != nodeType)

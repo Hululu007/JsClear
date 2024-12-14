@@ -1,11 +1,12 @@
-declare const enum TOEKN_TYPE {
+declare const enum TOKEN_TYPE {
     NODE = 0,
     OR = 1,
     NOT = 2,
-    AND = 3
+    LEFT_PAREN = 3,
+    RIGHT_PAREN = 4
 }
 interface TOKEN {
-    type: TOEKN_TYPE;
+    type: TOKEN_TYPE;
     value: string;
 }
 declare class Scanner {
@@ -15,7 +16,8 @@ declare class Scanner {
     constructor(source: string);
     static newNot(): TOKEN;
     static newOr(): TOKEN;
-    static newAnd(): TOKEN;
+    static newLeftParen(): TOKEN;
+    static newRightParen(): TOKEN;
     static newNode(value: string): TOKEN;
     private pick;
     private advance;
@@ -23,4 +25,4 @@ declare class Scanner {
     private getNodeValue;
     getTokens(): TOKEN[];
 }
-export { Scanner, TOKEN, TOEKN_TYPE, };
+export { Scanner, TOKEN, TOKEN_TYPE, };

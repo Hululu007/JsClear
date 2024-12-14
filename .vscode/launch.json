@@ -40,11 +40,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "traverseTest",
+            "name": "traverse-test",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/test/traverseTest.js"
+            "program": "${workspaceFolder}/test/traverse-test.js"
         },
     ]
 }

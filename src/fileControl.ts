@@ -1,6 +1,23 @@
 import fs from 'fs';
 import path from 'path';
 
+// 递归创建文件夹
+function mkdirsSync(dirPath: string) {
+    let dirs = path.normalize(dirPath).split(path.sep);
+    let currentDirPath = ''; 
+  
+    dirs.forEach((dir) => {
+        if (dir) 
+        {
+            currentDirPath += dir + path.sep; 
+            if (!fs.existsSync(currentDirPath)) 
+            {
+                fs.mkdirSync(currentDirPath);
+            }
+      }
+    });
+}
+
 function readFile(filePath: string, encoding: BufferEncoding = 'utf8')
 {
     const data: string = fs.readFileSync(filePath, encoding);
@@ -10,7 +27,7 @@ function readFile(filePath: string, encoding: BufferEncoding = 'utf8')
 function writeFile(filePath: string, data: string)
 {
     let dirPath = path.dirname(filePath);
-    !fs.existsSync(dirPath) && fs.mkdirSync(dirPath);
+    mkdirsSync(dirPath);
 
     fs.writeFileSync(filePath, data);
 }
@@ -19,6 +36,8 @@ function deleteFile(filePath: string)
 {
     fs.unlinkSync(filePath);
 }
+
+
 
 // 连续创建文件
 class WriteDir
@@ -38,10 +57,26 @@ class WriteDir
         this.writeCount = 0;
     }
 
+    mkdirsSync(dirPath: string) {
+        let dirs = path.normalize(dirPath).split(path.sep);
+        let currentDirPath = ''; 
+      
+        dirs.forEach((dir) => {
+            if (dir) 
+            {
+                currentDirPath += dir + path.sep; 
+                if (!fs.existsSync(currentDirPath)) 
+                {
+                    fs.mkdirSync(currentDirPath);
+                }
+          }
+        });
+    }
+
     writeFile(filePath: string, data: string)
     {
         let dirPath = path.dirname(filePath);
-        !fs.existsSync(dirPath) && fs.mkdirSync(dirPath);
+        this.mkdirsSync(dirPath);
     
         fs.writeFileSync(filePath, data);
     }

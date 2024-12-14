@@ -26,7 +26,7 @@ function checkType(nodeType: string, traitNodeType: string)
     if (traitNodeType == '*') return true;
     if (traitNodeType.includes('|'))
     {
-        if (traitNodeType.includes('&') || !traitNodeType.includes('!')) throw new Error("暂不支持两个标识符");
+        if (traitNodeType.includes('!')) throw new Error("暂不支持两个标识符");
         let types = traitNodeType.split('|');
         for (let type of types)
         {
@@ -36,8 +36,8 @@ function checkType(nodeType: string, traitNodeType: string)
     }
     else if (traitNodeType.includes('!'))
     {
-        if (traitNodeType.includes('&') || !traitNodeType.includes('|')) throw new Error("暂不支持两个标识符");
-        let types = traitNodeType.split('|');
+        if (traitNodeType.includes('|')) throw new Error("暂不支持两个标识符");
+        let types = traitNodeType.split('!');
         if (types.length != 2) throw new Error("暂不支持多个!");
 
         if (types[1] != nodeType) return true;

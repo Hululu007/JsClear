@@ -1,6 +1,6 @@
 const types = require("@babel/types");
 
-const { Tools, JsClear } = require('./bin/index.js'); 
+const { Tools, JsClear } = require('../bin/index.js'); 
 const  { CodeEval, NameNote, WriteDir, writeFile, readFile } = Tools;
 const  { isTraitNode, node2js, js2node, traverse } = JsClear;
 
@@ -93,5 +93,3 @@ traverse(ast, traitNode, (path) => {
     }
 });
 wd.write(node2js(ast));
-
-

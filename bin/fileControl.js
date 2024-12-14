@@ -9,13 +9,26 @@ exports.readFile = readFile;
 exports.deleteFile = deleteFile;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+// 递归创建文件夹
+function mkdirsSync(dirPath) {
+    let dirs = path_1.default.normalize(dirPath).split(path_1.default.sep);
+    let currentDirPath = '';
+    dirs.forEach((dir) => {
+        if (dir) {
+            currentDirPath += dir + path_1.default.sep;
+            if (!fs_1.default.existsSync(currentDirPath)) {
+                fs_1.default.mkdirSync(currentDirPath);
+            }
+        }
+    });
+}
 function readFile(filePath, encoding = 'utf8') {
     const data = fs_1.default.readFileSync(filePath, encoding);
     return data;
 }
 function writeFile(filePath, data) {
     let dirPath = path_1.default.dirname(filePath);
-    !fs_1.default.existsSync(dirPath) && fs_1.default.mkdirSync(dirPath);
+    mkdirsSync(dirPath);
     fs_1.default.writeFileSync(filePath, data);
 }
 function deleteFile(filePath) {
@@ -31,9 +44,21 @@ class WriteDir {
         this.type = type;
         this.writeCount = 0;
     }
+    mkdirsSync(dirPath) {
+        let dirs = path_1.default.normalize(dirPath).split(path_1.default.sep);
+        let currentDirPath = '';
+        dirs.forEach((dir) => {
+            if (dir) {
+                currentDirPath += dir + path_1.default.sep;
+                if (!fs_1.default.existsSync(currentDirPath)) {
+                    fs_1.default.mkdirSync(currentDirPath);
+                }
+            }
+        });
+    }
     writeFile(filePath, data) {
         let dirPath = path_1.default.dirname(filePath);
-        !fs_1.default.existsSync(dirPath) && fs_1.default.mkdirSync(dirPath);
+        this.mkdirsSync(dirPath);
         fs_1.default.writeFileSync(filePath, data);
     }
     write(data, name) {

@@ -8,16 +8,19 @@ class Scanner {
         this.previous = 0;
     }
     static newNot() {
-        return { type: 2 /* TOEKN_TYPE.NOT */, value: '!' };
+        return { type: 2 /* TOKEN_TYPE.NOT */, value: '!' };
     }
     static newOr() {
-        return { type: 1 /* TOEKN_TYPE.OR */, value: '|' };
+        return { type: 1 /* TOKEN_TYPE.OR */, value: '|' };
     }
-    static newAnd() {
-        return { type: 3 /* TOEKN_TYPE.AND */, value: '&' };
+    static newLeftParen() {
+        return { type: 3 /* TOKEN_TYPE.LEFT_PAREN */, value: '(' };
+    }
+    static newRightParen() {
+        return { type: 4 /* TOKEN_TYPE.RIGHT_PAREN */, value: ')' };
     }
     static newNode(value) {
-        return { type: 0 /* TOEKN_TYPE.NODE */, value: value };
+        return { type: 0 /* TOKEN_TYPE.NODE */, value: value };
     }
     pick(count = 0) {
         return this.source[this.current + count];
@@ -53,15 +56,21 @@ class Scanner {
                         this.advance();
                         break;
                     }
-                case '&':
-                    {
-                        tokens.push(Scanner.newAnd());
-                        this.advance();
-                        break;
-                    }
                 case '|':
                     {
                         tokens.push(Scanner.newOr());
+                        this.advance();
+                        break;
+                    }
+                case '(':
+                    {
+                        tokens.push(Scanner.newLeftParen());
+                        this.advance();
+                        break;
+                    }
+                case ')':
+                    {
+                        tokens.push(Scanner.newRightParen());
                         this.advance();
                         break;
                     }

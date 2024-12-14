@@ -7,6 +7,7 @@ declare class WriteDir {
     private type;
     private writeCount;
     constructor(dir: string, defaulfName?: string, type?: string);
+    mkdirsSync(dirPath: string): void;
     writeFile(filePath: string, data: string): void;
     write(data: string, name: string): void;
 }
