@@ -1,52 +1,67 @@
 import { getType, isNode }  from "./utiles";
 import { Node }  from "./Path";
 import { Scanner }  from "./Scanner";
-// import { Parser }  from "./Parser";
+import { Parser, ParserResult }  from "./Parser";
 
-
-// 检查类型是否相等 !
-// function checkType(nodeType: string, traitNodeType: string)
-// {
-//     if (typeof traitNodeType != "string") throw new Error("传入的类型不是字符串.");
-//     if (traitNodeType == '*') return true;
-//     if (!traitNodeType.includes('|') && !traitNodeType.includes('&') && !traitNodeType.includes('!'))
-//     {
-//         return nodeType == traitNodeType;
-//     }
-
-//     let scanner = new Scanner(traitNodeType);
-//     let tokens = scanner.getTokens();
-//     let parser = new Parser(tokens);
-//     return parser.check(nodeType);
-// }
-
-function checkType(nodeType: string, traitNodeType: string)
+interface ParserCache
 {
-    if (typeof traitNodeType != "string") throw new Error("传入的类型不是字符串.");
-    if (traitNodeType == '*') return true;
-    if (traitNodeType.includes('|'))
+    [scannerStr: string]: ParserResult
+}
+// 解析结果的缓存
+let parseCache: ParserCache = {};
+
+// 检查是否有需要解析的特殊符号
+function isNeadParse(type: string)
+{
+    for (let c of Scanner.typeChars)
     {
-        if (traitNodeType.includes('!')) throw new Error("暂不支持两个标识符");
-        let types = traitNodeType.split('|');
-        for (let type of types)
+        if (type.includes(c)) return true;
+    }
+    return false;
+}
+
+function check(nodeType: string, parserResult: ParserResult)
+{
+    let union = parserResult.union;
+    let complement = parserResult.complement;
+
+    if (union.length != 0 && complement.length != 0) throw new Error("并集与补集不能共存，如果你确实需要共存，可以联系我修改.");
+    else if (union.length != 0)
+    {
+        for (let type of union)
         {
             if (type == nodeType) return true;
         }
         return false;
     }
-    else if (traitNodeType.includes('!'))
-    {
-        if (traitNodeType.includes('|')) throw new Error("暂不支持两个标识符");
-        let types = traitNodeType.split('!');
-        if (types.length != 2) throw new Error("暂不支持多个!");
-
-        if (types[1] != nodeType) return true;
-        else return false;
-    }
     else
     {
-        return nodeType == traitNodeType;
+        for (let type of complement)
+        {
+            if (type == nodeType) return false;
+        }
+        return true;
     }
+}
+
+// 检查类型是否相等
+function checkType(nodeType: string, traitNodeType: string)
+{
+    if (typeof traitNodeType != "string") throw new Error("传入的类型不是字符串.");
+    if (traitNodeType == '*') return true;
+    if (!isNeadParse(traitNodeType)) return nodeType == traitNodeType;
+
+    let scanner = new Scanner(traitNodeType);
+    let tokens = scanner.getTokens();
+
+    let scannerStr = Scanner.getString(tokens);
+    let parserResult: ParserResult =  parseCache[scannerStr];
+    if (parserResult == undefined)
+    {   
+        let parser = new Parser(tokens);
+        parserResult = parser.getResult();
+    }
+    return check(nodeType, parserResult);
 }
 
 // 解析traitNode中的数组

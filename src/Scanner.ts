@@ -1,8 +1,8 @@
 const enum TOKEN_TYPE
 {
     NODE,
-    OR,
-    NOT,
+    UNION,
+    COMPLEMENT,
     LEFT_PAREN,
     RIGHT_PAREN
 }
@@ -14,6 +14,8 @@ interface TOKEN {
 
 class Scanner
 {
+    static typeChars = ['|', '(', ')', '!'];
+
     public previous;
     public current;
     public source;
@@ -27,12 +29,12 @@ class Scanner
 
     static newNot(): TOKEN
     {
-        return { type: TOKEN_TYPE.NOT, value: '!' };
+        return { type: TOKEN_TYPE.COMPLEMENT, value: '!' };
     }
 
     static newOr(): TOKEN
     {
-        return { type: TOKEN_TYPE.OR, value: '|' };
+        return { type: TOKEN_TYPE.UNION, value: '|' };
     }
 
     static newLeftParen(): TOKEN
@@ -133,6 +135,16 @@ class Scanner
         }
 
         return tokens;
+    }
+
+    static getString(tokens: Array<TOKEN>)
+    {
+        let str = "";
+        for (let token of tokens)
+        {
+            str += token.value;
+        }
+        return str;
     }
 }
 

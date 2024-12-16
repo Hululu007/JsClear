@@ -8,10 +8,10 @@ class Scanner {
         this.previous = 0;
     }
     static newNot() {
-        return { type: 2 /* TOKEN_TYPE.NOT */, value: '!' };
+        return { type: 2 /* TOKEN_TYPE.COMPLEMENT */, value: '!' };
     }
     static newOr() {
-        return { type: 1 /* TOKEN_TYPE.OR */, value: '|' };
+        return { type: 1 /* TOKEN_TYPE.UNION */, value: '|' };
     }
     static newLeftParen() {
         return { type: 3 /* TOKEN_TYPE.LEFT_PAREN */, value: '(' };
@@ -89,5 +89,13 @@ class Scanner {
         }
         return tokens;
     }
+    static getString(tokens) {
+        let str = "";
+        for (let token of tokens) {
+            str += token.value;
+        }
+        return str;
+    }
 }
 exports.Scanner = Scanner;
+Scanner.typeChars = ['|', '(', ')', '!'];

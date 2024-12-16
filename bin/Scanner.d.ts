@@ -1,7 +1,7 @@
 declare const enum TOKEN_TYPE {
     NODE = 0,
-    OR = 1,
-    NOT = 2,
+    UNION = 1,
+    COMPLEMENT = 2,
     LEFT_PAREN = 3,
     RIGHT_PAREN = 4
 }
@@ -10,6 +10,7 @@ interface TOKEN {
     value: string;
 }
 declare class Scanner {
+    static typeChars: string[];
     previous: number;
     current: number;
     source: string;
@@ -24,5 +25,6 @@ declare class Scanner {
     isLetter(char: string): boolean;
     private getNodeValue;
     getTokens(): TOKEN[];
+    static getString(tokens: Array<TOKEN>): string;
 }
 export { Scanner, TOKEN, TOKEN_TYPE, };

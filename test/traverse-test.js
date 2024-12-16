@@ -19,7 +19,9 @@ traverse(ast2, {
     enter(path)
     {
         num++;
-        babelStats.add(path.type)
+        babelStats.add(path.type);
+
+        path.get("body");
     }
 })
 
