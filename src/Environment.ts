@@ -7,7 +7,7 @@ class Environment
 
     public path: Path;
     public parentEnvironment: Environment | null;
-    public definePaths: Array<Path> | null;
+    public varPaths: Set<Path>;
 
     constructor(path: Path, parentEnvironment: Environment | null)
     {
@@ -17,7 +17,7 @@ class Environment
         {
             this.path = path;
             this.parentEnvironment = parentEnvironment;
-            this.definePaths = null;
+            this.varPaths = new Set();
             Environment.cache.set(path, this);
         }
         else
@@ -25,35 +25,35 @@ class Environment
             // 其实要个return就够了，这些为了不报错
             this.path = cacheInstance.path;
             this.parentEnvironment = cacheInstance.parentEnvironment;
-            this.definePaths = cacheInstance.definePaths;
+            this.varPaths = cacheInstance.varPaths;
 
             return cacheInstance;
         }
     }
 
-    clearCache()
+    clearVarPaths()
+    {
+        this.varPaths = new Set();
+    }
+
+    static clearCache()
     {
         Environment.cache = new WeakMap();
     }
 
     defineVariable(path: Path)
     {
-        if (this.definePaths == null)
-        {
-            this.definePaths = [];
-        }
-        this.definePaths.push(path);
+        this.varPaths.add(path);
     }
 
     findVariable(name: string): Path | null
     {
-        let definePaths = this.definePaths
-        if (definePaths == null) return null;
+        let definePaths = this.varPaths
 
-        for (let i = definePaths.length - 1; i >= 0; --i)
+        for (let varPath of definePaths)
         {
-            let node = definePaths[i].node;
-            if (node['id']['name'] == name) return definePaths[i];
+            let node = varPath.node;
+            if (node['id']['name'] == name) return varPath;
         }
 
         if (this.parentEnvironment != null) 

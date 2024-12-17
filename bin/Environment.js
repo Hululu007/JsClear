@@ -7,34 +7,32 @@ class Environment {
         if (cacheInstance == undefined) {
             this.path = path;
             this.parentEnvironment = parentEnvironment;
-            this.definePaths = null;
+            this.varPaths = new Set();
             Environment.cache.set(path, this);
         }
         else {
             // 其实要个return就够了，这些为了不报错
             this.path = cacheInstance.path;
             this.parentEnvironment = cacheInstance.parentEnvironment;
-            this.definePaths = cacheInstance.definePaths;
+            this.varPaths = cacheInstance.varPaths;
             return cacheInstance;
         }
     }
-    clearCache() {
+    clearVarPaths() {
+        this.varPaths = new Set();
+    }
+    static clearCache() {
         Environment.cache = new WeakMap();
     }
     defineVariable(path) {
-        if (this.definePaths == null) {
-            this.definePaths = [];
-        }
-        this.definePaths.push(path);
+        this.varPaths.add(path);
     }
     findVariable(name) {
-        let definePaths = this.definePaths;
-        if (definePaths == null)
-            return null;
-        for (let i = definePaths.length - 1; i >= 0; --i) {
-            let node = definePaths[i].node;
+        let definePaths = this.varPaths;
+        for (let varPath of definePaths) {
+            let node = varPath.node;
             if (node['id']['name'] == name)
-                return definePaths[i];
+                return varPath;
         }
         if (this.parentEnvironment != null) {
             return this.parentEnvironment.findVariable(name);

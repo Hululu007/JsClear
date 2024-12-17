@@ -4,9 +4,10 @@ declare class Environment {
     static cache: WeakMap<Path, Environment>;
     path: Path;
     parentEnvironment: Environment | null;
-    definePaths: Array<Path> | null;
+    varPaths: Set<Path>;
     constructor(path: Path, parentEnvironment: Environment | null);
-    clearCache(): void;
+    clearVarPaths(): void;
+    static clearCache(): void;
     defineVariable(path: Path): void;
     findVariable(name: string): Path | null;
 }

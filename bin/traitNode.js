@@ -18,7 +18,7 @@ function check(nodeType, parserResult) {
     let union = parserResult.union;
     let complement = parserResult.complement;
     if (union.length != 0 && complement.length != 0)
-        throw new Error("并集与补集不能共存，如果你确实需要共存，可以联系我修改.");
+        throw new Error("并集与补集不能共存，因为我在用的时候，觉得不需要这点，并且会影响性能，如果你确实需要共存，可以联系我修改.");
     else if (union.length != 0) {
         for (let type of union) {
             if (type == nodeType)
@@ -81,7 +81,7 @@ function parseObject(node, traitNode) {
 // 判断是否符合特征
 function isTraitNode(node, traitNode) {
     if (!(0, utiles_1.isNode)(traitNode))
-        throw new Error("传入的特征节点不是node");
+        throw new Error("需要传入一个node");
     if (!checkType(node['type'], traitNode['type']))
         return false; // 提升效率
     // 判断除去 node 节点的属性

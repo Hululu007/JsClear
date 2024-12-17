@@ -15,13 +15,20 @@ let num = 0;
 let ast1 = js2node(data, {});
 let ast2 = parser(data, {});
 
+let bb;
 traverse(ast2, {
     enter(path)
     {
         num++;
-        babelStats.add(path.type);
+        if (num == 5) bb = path;
+        if (num == 8) 
+        {
+            bb.replaceWith(js2node("bbbbbbbbb")["body"][0]);
 
-        path.get("body");
+            console.log(bb+"");
+            
+        }
+        babelStats.add(path.type);
     }
 })
 
@@ -38,4 +45,41 @@ for (let key of Object.keys(babelStats.get()))
     }
 }
 
-console.log("traverse函数测试成功");
+console.log("traverse函数节点总数目测试成功");
+
+
+myTraverse(ast1, {type: '*'}, (path) => { 
+    num++;
+    if (num == 5) bb = path;
+    if (num == 8) 
+    {
+        bb.replaceWith(js2node("bbbbbbbbb")["body"][0], false); 
+        console.log(bb+"");
+    }
+})
+
+console.log("traverse函数节点替换测试成功");
+
+
+ast2 = parser(readFile('./example/ld-mid.js'), {});
+num = 0;
+traverse(ast2, {
+    LogicalExpression(path)
+    {
+        num++;
+        if (num == 3)
+        {
+            bb = path;
+            bb.get("right");
+        }
+        
+        if (num == 6)
+        {
+            path.get("right").replaceWith(js2node("bbbbbbbbb")["body"][0]);
+            console.log(path+"");
+            
+        }
+    }
+})
+
+console.log();
