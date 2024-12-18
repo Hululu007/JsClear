@@ -3,7 +3,6 @@ import { Path } from "./Path"
 class Environment
 {
     static environmentTypes =  ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement", "IfStatement"];
-    static cache: WeakMap<Path, Environment> = new WeakMap();
 
     public path: Path;
     public parentEnvironment: Environment | null;
@@ -12,33 +11,14 @@ class Environment
     constructor(path: Path, parentEnvironment: Environment | null)
     {
         
-        let cacheInstance  = Environment.cache.get(path)
-        if (cacheInstance  == undefined)
-        {
-            this.path = path;
-            this.parentEnvironment = parentEnvironment;
-            this.varPaths = new Set();
-            Environment.cache.set(path, this);
-        }
-        else
-        {
-            // 其实要个return就够了，这些为了不报错
-            this.path = cacheInstance.path;
-            this.parentEnvironment = cacheInstance.parentEnvironment;
-            this.varPaths = cacheInstance.varPaths;
-
-            return cacheInstance;
-        }
+        this.path = path;
+        this.parentEnvironment = parentEnvironment;
+        this.varPaths = new Set();
     }
 
     clearVarPaths()
     {
         this.varPaths = new Set();
-    }
-
-    static clearCache()
-    {
-        Environment.cache = new WeakMap();
     }
 
     defineVariable(path: Path)

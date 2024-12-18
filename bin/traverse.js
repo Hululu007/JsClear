@@ -18,11 +18,12 @@ function debugLog(path) {
     log.label(path.type, content);
 }
 class Traverse {
-    constructor(headEnvironment) {
-        this.currentEnvironment = headEnvironment;
-        this.context = new WeakMap();
+    constructor(currentEnvironment) {
+        this.currentEnvironment = currentEnvironment;
+        this.contextOfPath = new WeakMap();
+        this.contextOfEnvironment = new WeakMap();
     }
-    // 创建子node对应的path存进context
+    // 创建子node对应的path存进contextOfPath
     newPath(path, isNewPathSetSkip) {
         // 保存来时环境
         let previousEnvironment;
@@ -32,7 +33,14 @@ class Traverse {
             isUpadeEnvironment = true;
             previousEnvironment = this.currentEnvironment;
             // 做了缓存机制，相同的path对象对应相同的Environment
-            this.currentEnvironment = new Environment_1.Environment(path, previousEnvironment);
+            let cache = this.contextOfEnvironment.get(path);
+            if (cache == undefined) {
+                this.currentEnvironment = new Environment_1.Environment(path, previousEnvironment);
+                this.contextOfEnvironment.set(path, this.currentEnvironment);
+            }
+            else {
+                this.currentEnvironment = cache;
+            }
         }
         // 为path增添一些方法
         this.updatePath(path);
@@ -57,12 +65,12 @@ class Traverse {
     visitNodeArray(parentPath, nodeArray, isNewPathSetSkip) {
         let queue = [];
         for (let index = 0; index < nodeArray.length; ++index) {
-            let path = this.context.get(nodeArray[index]);
+            let path = this.contextOfPath.get(nodeArray[index]);
             if (path == undefined) {
                 // 封装成Path
                 path = new Path_1.Path(nodeArray[index], parentPath, this.currentEnvironment, isNewPathSetSkip);
                 // 设置缓存
-                this.context.set(nodeArray[index], path);
+                this.contextOfPath.set(nodeArray[index], path);
             }
             queue.push(path);
         }
@@ -72,12 +80,12 @@ class Traverse {
     // 处理单个node
     visitNodeSingle(parentPath, node, isNewPathSetSkip) {
         // 如果已经有了Path就不再创建了
-        let path = this.context.get(node);
+        let path = this.contextOfPath.get(node);
         if (path == undefined) {
             // 封装成Path
             path = new Path_1.Path(node, parentPath, this.currentEnvironment, isNewPathSetSkip);
             // 设置缓存
-            this.context.set(node, path);
+            this.contextOfPath.set(node, path);
         }
         // 深度优先遍历，方便解析作用域
         this.visitQueue([path], isNewPathSetSkip);
@@ -106,7 +114,7 @@ class Traverse {
     }
     // 递归遍历树-访问path
     traverseNode(node, traitNode, visit) {
-        let path = this.context.get(node);
+        let path = this.contextOfPath.get(node);
         if (path == undefined)
             throw new Error("呃....发生了一个意外的错误.");
         // 保存来时环境
@@ -117,7 +125,14 @@ class Traverse {
             isUpadeEnvironment = true;
             previousEnvironment = this.currentEnvironment;
             // 做了缓存机制，相同的path对象对应相同的Environment
-            this.currentEnvironment = new Environment_1.Environment(path, previousEnvironment);
+            let cache = this.contextOfEnvironment.get(path);
+            if (cache == undefined) {
+                this.currentEnvironment = new Environment_1.Environment(path, previousEnvironment);
+                this.contextOfEnvironment.set(path, this.currentEnvironment);
+            }
+            else {
+                this.currentEnvironment = cache;
+            }
         }
         // 调试日志
         debugLog(path);
@@ -194,13 +209,13 @@ class Traverse {
         path.get = function (key) {
             let node = this.node[key];
             if ((0, utiles_1.isNode)(node)) {
-                return t.context.get(node);
+                return t.contextOfPath.get(node);
             }
             else if (Array.isArray(node)) {
                 let pathArray = [];
                 for (let n of node) {
                     if ((0, utiles_1.isNode)(n)) {
-                        pathArray.push(t.context.get(n));
+                        pathArray.push(t.contextOfPath.get(n));
                     }
                     else {
                         pathArray.push(n);
@@ -251,8 +266,8 @@ class Traverse {
             this.type = newNode["type"];
             this.clearReference();
             // 修正pathCache
-            t.context.delete(oldNode);
-            t.context.set(newNode, this);
+            t.contextOfPath.delete(oldNode);
+            t.contextOfPath.set(newNode, this);
             // 解析新的node
             t.currentEnvironment = this.environment;
             t.newPath(this, isSkip);
@@ -268,7 +283,8 @@ function traverse(node, traitNode, visit) {
     let headEnvironment = new Environment_1.Environment(headPath, null);
     headPath.environment = headEnvironment;
     let t = new Traverse(headEnvironment);
-    t.context.set(node, headPath);
+    t.contextOfPath.set(node, headPath);
+    t.contextOfEnvironment.set(headPath, headEnvironment);
     t.newPath(headPath, false);
     t.traverseNode(node, traitNode, visit);
 }
