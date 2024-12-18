@@ -14,10 +14,9 @@ declare class Path {
     toString(): string;
     replaceWith(node: Node, isSkip: boolean): void;
     get(key: string): Path | any;
+    findReference(): void;
     addReference(path: Path): void;
     clearReference(): void;
     getReferencePaths(): Path[] | undefined;
-    setReferencePaths(referencePaths: Array<Path>): void;
-    findReference(): void;
 }
 export { Path, Node };

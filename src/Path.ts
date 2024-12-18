@@ -41,6 +41,11 @@ class Path
         throw new Error("呃...非常抱歉，这好像是一个bug.");
     }
 
+    findReference()
+    {
+        throw new Error("非VariableDeclarator节点不能调用.");
+    }
+
     addReference(path: Path)
     {
         if (this.type != "VariableDeclarator") throw new Error("非VariableDeclarator节点不能调用.");
@@ -68,18 +73,6 @@ class Path
         if (this.type != "VariableDeclarator") throw new Error("非VariableDeclarator节点不能调用.");
         return this.referencePaths;
     }
-
-    setReferencePaths(referencePaths: Array<Path>)
-    {
-        if (this.type != "VariableDeclarator") throw new Error("非VariableDeclarator节点不能调用.");
-        this.referencePaths = referencePaths;
-    }
-
-    findReference()
-    {
-        throw new Error("非VariableDeclarator节点不能调用.");
-    }
-
 }
 
 export {
