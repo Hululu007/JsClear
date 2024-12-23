@@ -163,11 +163,10 @@ class Traverse {
     }
     // 为path添加一些方法
     updatePath(path) {
-        let type = path.type;
-        if (type == 'VariableDeclarator') {
+        if (path.isVarNode()) {
             this.implementPathFindReference(path);
         }
-        if (type != "Program" && type != "File") {
+        if (path.type != "Program" && path.type != "File") {
             this.implementPathReplaceWith(path);
         }
         this.implementPathGet(path);
@@ -176,31 +175,31 @@ class Traverse {
     implementPathFindReference(path) {
         let t = this;
         path.findReference = function () {
-            let targetName = this.node["id"]["name"];
+            let targetName = this.node["name"];
             let environment = this.environment;
             // 清除上次残留，防止path.replaceWith后发生错误
             environment.clearVarPaths();
             // 每次都从当前环境重新解析
             function updateEnvDefineVar(path) {
-                if (path.type == "VariableDeclarator") {
+                if (path.isVarNode()) {
                     // 清除上次残留，防止path.replaceWith后发生错误
-                    path.clearReference();
+                    path.initReference();
                     t.currentEnvironment.defineVariable(path);
                 }
-                else if (path.type == "Identifier" && path.parentPath.type != "VariableDeclarator") {
+                else if (path.type == "Identifier" && !path.isVarNode()) {
                     let name = path.node["name"];
                     // 减少一点回溯，提升性能
                     if (name == targetName) {
                         let varPath = t.currentEnvironment.findVariable(name);
                         if (varPath != null) {
-                            varPath.addReference(path);
+                            varPath.referencePaths.push(path);
                         }
                     }
                 }
             }
             t.currentEnvironment = environment;
             t.traverseNode(environment.path.node, { type: "*" }, updateEnvDefineVar);
-            return this.getReferencePaths();
+            return this.referencePaths;
         };
     }
     // path.get
@@ -264,7 +263,7 @@ class Traverse {
             this.node = newNode;
             this.isSkip = isSkip;
             this.type = newNode["type"];
-            this.clearReference();
+            this.initReference();
             // 修正pathCache
             t.contextOfPath.delete(oldNode);
             t.contextOfPath.set(newNode, this);

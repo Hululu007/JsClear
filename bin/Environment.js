@@ -13,11 +13,12 @@ class Environment {
     defineVariable(path) {
         this.varPaths.add(path);
     }
+    // 递归寻找
     findVariable(name) {
         let definePaths = this.varPaths;
         for (let varPath of definePaths) {
             let node = varPath.node;
-            if (node['id']['name'] == name)
+            if (node['name'] == name)
                 return varPath;
         }
         if (this.parentEnvironment != null) {
@@ -28,4 +29,7 @@ class Environment {
     }
 }
 exports.Environment = Environment;
-Environment.environmentTypes = ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement", "IfStatement"];
+// 这些节点需要遇到就解析作用域而不是遇到其子节点的"BlockStatement"时
+Environment.loopTypes = ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement"];
+Environment.functionTypes = ["ArrowFunctionExpression", "FunctionDeclaration", "ObjectMethod", "ClassMethod"];
+Environment.environmentTypes = ["IfStatement"].concat(Environment.loopTypes).concat(Environment.functionTypes);

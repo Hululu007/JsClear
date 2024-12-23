@@ -2,7 +2,10 @@ import { Path } from "./Path"
 
 class Environment
 {
-    static environmentTypes =  ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement", "IfStatement"];
+    // 这些节点需要遇到就解析作用域而不是遇到其子节点的"BlockStatement"时
+    static loopTypes = ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement"];
+    static functionTypes = ["ArrowFunctionExpression", "FunctionDeclaration", "ObjectMethod", "ClassMethod"];
+    static environmentTypes =  ["IfStatement"].concat(Environment.loopTypes).concat(Environment.functionTypes);
 
     public path: Path;
     public parentEnvironment: Environment | null;
@@ -26,6 +29,7 @@ class Environment
         this.varPaths.add(path);
     }
 
+    // 递归寻找
     findVariable(name: string): Path | null
     {
         let definePaths = this.varPaths
@@ -33,7 +37,7 @@ class Environment
         for (let varPath of definePaths)
         {
             let node = varPath.node;
-            if (node['id']['name'] == name) return varPath;
+            if (node['name'] == name) return varPath;
         }
 
         if (this.parentEnvironment != null) 

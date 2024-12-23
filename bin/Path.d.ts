@@ -9,14 +9,14 @@ declare class Path {
     parentPath: Path | null;
     isSkip: boolean;
     environment: Environment | null;
-    private referencePaths;
+    referencePaths: Array<Path> | undefined;
     constructor(node: Node, parentPath: Path | null, environment: Environment | null, isSkip?: boolean);
     toString(): string;
+    isTraitNode(traitNode: Node): boolean;
     replaceWith(node: Node, isSkip: boolean): void;
     get(key: string): Path | any;
     findReference(): void;
-    addReference(path: Path): void;
-    clearReference(): void;
-    getReferencePaths(): Path[] | undefined;
+    isVarNode(): boolean;
+    initReference(): void;
 }
 export { Path, Node };

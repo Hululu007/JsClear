@@ -1,5 +1,7 @@
 import { Path } from "./Path";
 declare class Environment {
+    static loopTypes: string[];
+    static functionTypes: string[];
     static environmentTypes: string[];
     path: Path;
     parentEnvironment: Environment | null;

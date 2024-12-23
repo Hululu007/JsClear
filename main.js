@@ -2,78 +2,25 @@ const types = require("@babel/types");
 
 const { Tools, JsClear } = require('./bin/index.js'); 
 const  { CodeEval, NameNote, WriteDir, writeFile, readFile } = Tools;
-const  { isTraitNode, node2js, js2node, traverse } = JsClear;
+const  { node2js, js2node, traverse } = JsClear;
 
 
-let data = readFile('example/ld-mid.js');
-let ast = js2node(data)
+let data = readFile('example/ld-conzhitai.js');
+let ast = js2node(data);
 
-let traitNode;
-let wd = new WriteDir("./data/ld-min", 'ld', '.js');
 let local = new NameNote("local");
+let writeDir = new WriteDir("./data/ld-conzhitai", "id", ".js");
 
-// 改名
-traverse(ast, { type: "VariableDeclarator" }, (path) => {
-    let temp = local.new();
-    let node = path.node;
-    
-    for (let i of path.findReference())
+traverse(ast, { type: "Identifier" }, (path) => {
+    if (path.isVarNode())
     {
-        i.node.name = temp;
-    }
-    node.id.name = temp;
-});
-data = node2js(ast);
-wd.write(data);
-ast = js2node(data);
-
-// 字符串编码
-traverse(ast, { type: "StringLiteral" }, (path) => {
-    let node = types.stringLiteral(path.node.value);
-    path.replaceWith(node, true);
-})
-
-// for
-traitNode = {
-    type: "ForStatement",
-    body: {
-        type: "!BlockStatement"
-    }
-};
-traverse(ast, traitNode, (path) =>
-{
-    path.get("body").replaceWith(js2node("{" + node2js(path.node["body"]) + "}")["body"][0], false);
-});
-wd.write(node2js(ast));
-let currentTest;
-traverse(ast, { type: "SequenceExpression | ForStatement" }, (path) => {
-    if (path.type == "SequenceExpression")
-    {
-        let expressions = path.node["expressions"];
-        for (let expression of expressions)
+        let name = local.new()
+        for (let reference of path.findReference())
         {
-            if (expression["type"] == "LogicalExpression") return;
+            reference.node["name"] = name;
         }
-        console.log(currentTest, path+"");
-    }
-    else
-    {
-        let forNode = {
-            type: "ForStatement",
-            test: {
-                type: "Identifier"
-            }
-        }
-        if (isTraitNode(path.node, forNode))
-        {
-            currentTest = path.node["test"]["name"];
-        }
-        else
-        {
-            debugger;
-        }
+        path.node["name"] = name;
     }
 });
-wd.write(node2js(ast));
 
-
+writeDir.write(node2js(ast));

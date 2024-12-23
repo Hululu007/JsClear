@@ -1,6 +1,7 @@
 import { Environment } from "./Environment";
 import { node2js }  from "./generator";
-import { VISITOR_KEYS }  from "@babel/types";
+import { isTraitNode } from "./traitNode";
+import { isNode } from "./utiles";
 
 interface Node {
     [key: string]: any;
@@ -15,7 +16,7 @@ class Path
     public isSkip: boolean;
     public environment: Environment | null;
 
-    private referencePaths: Array<Path> | undefined;
+    public referencePaths: Array<Path> | undefined;
 
     constructor(node: Node, parentPath: Path | null, environment: Environment | null, isSkip=false)
     {
@@ -24,11 +25,21 @@ class Path
         this.parentPath = parentPath;
         this.isSkip = isSkip;
         this.environment = environment;
+
+        this.initReference();
     }
+
+    // api
 
     toString()
     {
         return node2js(this.node);
+    }
+
+    isTraitNode(traitNode: Node)
+    {
+        if (!isNode(traitNode)) throw new Error("需要传入一个node.");
+        return isTraitNode(this.node, traitNode);
     }
     
     replaceWith(node: Node, isSkip: boolean)
@@ -43,22 +54,25 @@ class Path
 
     findReference()
     {
-        throw new Error("非VariableDeclarator节点不能调用.");
+        throw new Error("这个节点不能调用.");
     }
 
-    addReference(path: Path)
+    // 判断是否是定义path
+    isVarNode()
     {
-        if (this.type != "VariableDeclarator") throw new Error("非VariableDeclarator节点不能调用.");
-        if (this.referencePaths == undefined)
-        {
-            this.referencePaths = [];
-        }
-        this.referencePaths.push(path);
+        if ("Identifier" != this.type) return false;
+
+        let type  = this.parentPath!.type;
+        if ('VariableDeclarator' == type) return true;
+        if (Environment.functionTypes.includes(type)) return true;
+        return false;
     }
 
-    clearReference()
+    // 辅助函数
+
+    initReference()
     {
-        if (this.type == "VariableDeclarator")
+        if (this.isVarNode())
         {
             this.referencePaths = [];
         }
@@ -68,11 +82,6 @@ class Path
         }
     }
 
-    getReferencePaths()
-    {
-        if (this.type != "VariableDeclarator") throw new Error("非VariableDeclarator节点不能调用.");
-        return this.referencePaths;
-    }
 }
 
 export {
