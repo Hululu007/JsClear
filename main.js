@@ -9,7 +9,9 @@ let data = readFile('example/ld-conzhitai.js');
 let ast = js2node(data);
 
 let local = new NameNote("local");
-let writeDir = new WriteDir("./data/ld-conzhitai", "id", ".js");
+let writeDir = new WriteDir("./result/ld-conzhitai", "ld", ".js");
+
+writeDir.write(node2js(ast));
 
 traverse(ast, { type: "Identifier" }, (path) => {
     if (path.isVarNode())
@@ -22,5 +24,4 @@ traverse(ast, { type: "Identifier" }, (path) => {
         path.node["name"] = name;
     }
 });
-
 writeDir.write(node2js(ast));

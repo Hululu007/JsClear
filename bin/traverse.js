@@ -18,32 +18,17 @@ function debugLog(path) {
     log.label(path.type, content);
 }
 class Traverse {
-    constructor(currentEnvironment) {
-        this.currentEnvironment = currentEnvironment;
+    constructor(headPath, headEnvironment = new Environment_1.Environment(null)) {
+        this.headPath = headPath;
+        this.headEnvironment = headEnvironment;
+        this.currentEnvironment = headEnvironment;
+        this.isRefactorEnvironment = false;
         this.contextOfPath = new WeakMap();
-        this.contextOfEnvironment = new WeakMap();
+        this.contextOfPath.set(headPath.node, headPath);
+        this.updatePath(headPath);
     }
     // 创建子node对应的path存进contextOfPath
     newPath(path, isNewPathSetSkip) {
-        // 保存来时环境
-        let previousEnvironment;
-        // 检查是否更新环境
-        let isUpadeEnvironment = false;
-        if (this.isNewEnvironment(path)) {
-            isUpadeEnvironment = true;
-            previousEnvironment = this.currentEnvironment;
-            // 做了缓存机制，相同的path对象对应相同的Environment
-            let cache = this.contextOfEnvironment.get(path);
-            if (cache == undefined) {
-                this.currentEnvironment = new Environment_1.Environment(path, previousEnvironment);
-                this.contextOfEnvironment.set(path, this.currentEnvironment);
-            }
-            else {
-                this.currentEnvironment = cache;
-            }
-        }
-        // 为path增添一些方法
-        this.updatePath(path);
         let node = path.node;
         // 遍历子树
         const keys = types_1.VISITOR_KEYS[node["type"]];
@@ -52,63 +37,104 @@ class Traverse {
             if (!childNode)
                 continue;
             if (!Array.isArray(childNode))
-                this.visitNodeSingle(path, childNode, isNewPathSetSkip);
+                this.visitNodeSingle(path, childNode, key, isNewPathSetSkip);
             else
-                this.visitNodeArray(path, childNode, isNewPathSetSkip);
-        }
-        // 如果更新了环境，子树都遍历完时，还原环境
-        if (isUpadeEnvironment) {
-            this.currentEnvironment = previousEnvironment;
+                this.visitNodeArray(path, childNode, key, isNewPathSetSkip);
         }
     }
     // 处理node数组
-    visitNodeArray(parentPath, nodeArray, isNewPathSetSkip) {
+    visitNodeArray(parentPath, nodeArray, key, isNewPathSetSkip) {
         let queue = [];
         for (let index = 0; index < nodeArray.length; ++index) {
             let path = this.contextOfPath.get(nodeArray[index]);
             if (path == undefined) {
                 // 封装成Path
-                path = new Path_1.Path(nodeArray[index], parentPath, this.currentEnvironment, isNewPathSetSkip);
+                path = new Path_1.Path(nodeArray[index], parentPath, isNewPathSetSkip);
+                // 为path增添一些方法
+                this.updatePath(path);
                 // 设置缓存
                 this.contextOfPath.set(nodeArray[index], path);
             }
             queue.push(path);
         }
         // 深度优先遍历，方便解析作用域
-        this.visitQueue(queue, isNewPathSetSkip);
+        this.visitQueue(queue, key, isNewPathSetSkip);
     }
     // 处理单个node
-    visitNodeSingle(parentPath, node, isNewPathSetSkip) {
+    visitNodeSingle(parentPath, node, key, isNewPathSetSkip) {
         // 如果已经有了Path就不再创建了
         let path = this.contextOfPath.get(node);
         if (path == undefined) {
             // 封装成Path
-            path = new Path_1.Path(node, parentPath, this.currentEnvironment, isNewPathSetSkip);
+            path = new Path_1.Path(node, parentPath, isNewPathSetSkip);
             // 设置缓存
             this.contextOfPath.set(node, path);
+            // 为path增添一些方法
+            this.updatePath(path);
         }
         // 深度优先遍历，方便解析作用域
-        this.visitQueue([path], isNewPathSetSkip);
+        this.visitQueue([path], key, isNewPathSetSkip);
     }
     // 深度优先
-    visitQueue(queue, isNewPathSetSkip) {
+    visitQueue(queue, key, isNewPathSetSkip) {
+        // 保存来时环境
+        let previousEnvironment;
+        // 检查是否更新环境
+        let isUpadeEnvironment;
         for (let index = 0; index < queue.length; index++) {
             let path = queue[index];
+            if (path.isVarNode())
+                this.currentEnvironment.defineVariable(path);
+            if (path.type == "Identifier") {
+                let name = path.get("name");
+                let varPath = this.currentEnvironment.findVariable(name);
+                if (varPath == null) {
+                    log.debug("发现一个未定义就使用的变量: " + name);
+                    // 未定义就使用的变量默认为全局
+                    let unVarPath = this.headEnvironment.unVarPaths.get(name);
+                    if (unVarPath == undefined) {
+                        path.referencePaths = [];
+                        this.headEnvironment.unVarPaths.set(name, path);
+                    }
+                    else {
+                        unVarPath.referencePaths.push(path);
+                    }
+                }
+                else
+                    varPath.referencePaths.push(path);
+            }
+            isUpadeEnvironment = this.isNewEnvironment(path, key);
+            if (isUpadeEnvironment) {
+                previousEnvironment = this.currentEnvironment;
+                this.currentEnvironment = new Environment_1.Environment(previousEnvironment);
+            }
             this.newPath(path, isNewPathSetSkip);
+            // 如果更新了环境，子树都遍历完时，还原环境
+            if (isUpadeEnvironment) {
+                this.currentEnvironment = previousEnvironment;
+            }
         }
     }
     // 检查是否开辟新环境
-    isNewEnvironment(path) {
-        let type = path.type;
-        if (Environment_1.Environment.environmentTypes.includes(type)) {
+    isNewEnvironment(path, key) {
+        // 可以直接开辟作用域的节点
+        if (Environment_1.Environment.environmentTypes.includes(path.type)) {
             return true;
         }
         // 单个BlockStatement
-        if (type == "BlockStatement") {
+        if (path.type == "BlockStatement") {
             if (Environment_1.Environment.environmentTypes.includes(path.parentPath.type)) {
                 return false;
             }
+            if (Environment_1.Environment.notEnvironmentTypes.includes(path.parentPath.type)) {
+                return false;
+            }
             return true;
+        }
+        // 特殊节点-函数名与函数形参处于不同的作用域
+        if (Environment_1.Environment.specialEnvTypes.includes(path.parentPath.type)) {
+            if (key == "params")
+                return true;
         }
         return false;
     }
@@ -117,23 +143,6 @@ class Traverse {
         let path = this.contextOfPath.get(node);
         if (path == undefined)
             throw new Error("呃....发生了一个意外的错误.");
-        // 保存来时环境
-        let previousEnvironment;
-        // 检查是否更新环境
-        let isUpadeEnvironment = false;
-        if (this.isNewEnvironment(path)) {
-            isUpadeEnvironment = true;
-            previousEnvironment = this.currentEnvironment;
-            // 做了缓存机制，相同的path对象对应相同的Environment
-            let cache = this.contextOfEnvironment.get(path);
-            if (cache == undefined) {
-                this.currentEnvironment = new Environment_1.Environment(path, previousEnvironment);
-                this.contextOfEnvironment.set(path, this.currentEnvironment);
-            }
-            else {
-                this.currentEnvironment = cache;
-            }
-        }
         // 调试日志
         debugLog(path);
         // 判断是否符合特征码然后访问
@@ -156,51 +165,13 @@ class Traverse {
                 }
             }
         }
-        // 如果更新了环境，子树都遍历完时，还原环境
-        if (isUpadeEnvironment) {
-            this.currentEnvironment = previousEnvironment;
-        }
     }
     // 为path添加一些方法
     updatePath(path) {
-        if (path.isVarNode()) {
-            this.implementPathFindReference(path);
-        }
         if (path.type != "Program" && path.type != "File") {
             this.implementPathReplaceWith(path);
         }
         this.implementPathGet(path);
-    }
-    // path.findReference 
-    implementPathFindReference(path) {
-        let t = this;
-        path.findReference = function () {
-            let targetName = this.node["name"];
-            let environment = this.environment;
-            // 清除上次残留，防止path.replaceWith后发生错误
-            environment.clearVarPaths();
-            // 每次都从当前环境重新解析
-            function updateEnvDefineVar(path) {
-                if (path.isVarNode()) {
-                    // 清除上次残留，防止path.replaceWith后发生错误
-                    path.initReference();
-                    t.currentEnvironment.defineVariable(path);
-                }
-                else if (path.type == "Identifier" && !path.isVarNode()) {
-                    let name = path.node["name"];
-                    // 减少一点回溯，提升性能
-                    if (name == targetName) {
-                        let varPath = t.currentEnvironment.findVariable(name);
-                        if (varPath != null) {
-                            varPath.referencePaths.push(path);
-                        }
-                    }
-                }
-            }
-            t.currentEnvironment = environment;
-            t.traverseNode(environment.path.node, { type: "*" }, updateEnvDefineVar);
-            return this.referencePaths;
-        };
     }
     // path.get
     implementPathGet(path) {
@@ -267,9 +238,11 @@ class Traverse {
             // 修正pathCache
             t.contextOfPath.delete(oldNode);
             t.contextOfPath.set(newNode, this);
-            // 解析新的node
-            t.currentEnvironment = this.environment;
+            // 解析新的node，设置isSkip
             t.newPath(this, isSkip);
+            // 重新解析环境
+            t.currentEnvironment = new Environment_1.Environment(null);
+            t.newPath(t.headPath, isSkip);
         };
     }
 }
@@ -278,12 +251,9 @@ function traverse(node, traitNode, visit) {
         node = node["program"];
     if (!(0, utiles_1.isNode)(node))
         throw new Error("非node节点");
-    let headPath = new Path_1.Path(node, null, null);
-    let headEnvironment = new Environment_1.Environment(headPath, null);
-    headPath.environment = headEnvironment;
-    let t = new Traverse(headEnvironment);
-    t.contextOfPath.set(node, headPath);
-    t.contextOfEnvironment.set(headPath, headEnvironment);
+    let headPath = new Path_1.Path(node, null);
+    let headEnvironment = new Environment_1.Environment(null);
+    let t = new Traverse(headPath, headEnvironment);
     t.newPath(headPath, false);
     t.traverseNode(node, traitNode, visit);
 }

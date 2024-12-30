@@ -10,21 +10,28 @@ interface Node {
 
 class Path
 {
+    // 可直接确定为定义变量的节点
+    static varTypes = [
+        "FunctionDeclaration", , "ClassMethod", "ArrowFunctionExpression", "FunctionExpression",
+        "VariableDeclarator"
+    ];
+    // 需要单独处理的节点
+    // static specialVarTypes = ["ObjectProperty", "ObjectMethod"];
+
     public node: Node;
     public type: string;
     public parentPath: Path | null;
     public isSkip: boolean;
-    public environment: Environment | null;
+
 
     public referencePaths: Array<Path> | undefined;
 
-    constructor(node: Node, parentPath: Path | null, environment: Environment | null, isSkip=false)
+    constructor(node: Node, parentPath: Path | null, isSkip=false)
     {
         this.node = node;
         this.type = node.type;
         this.parentPath = parentPath;
         this.isSkip = isSkip;
-        this.environment = environment;
 
         this.initReference();
     }
@@ -54,7 +61,8 @@ class Path
 
     findReference()
     {
-        throw new Error("这个节点不能调用.");
+        if (this.type != "Identifier") throw new Error("非Identifier节点不能调用这个方法.")
+        return this.referencePaths!;
     }
 
     // 判断是否是定义path
@@ -62,9 +70,10 @@ class Path
     {
         if ("Identifier" != this.type) return false;
 
-        let type  = this.parentPath!.type;
-        if ('VariableDeclarator' == type) return true;
-        if (Environment.functionTypes.includes(type)) return true;
+        let parentType  = this.parentPath!.type;
+        // ObjectProperty 特殊处理
+        if (Path.varTypes.includes(parentType)) return true;
+
         return false;
     }
 

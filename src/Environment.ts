@@ -2,21 +2,28 @@ import { Path } from "./Path"
 
 class Environment
 {
+    // 环境
     // 这些节点需要遇到就解析作用域而不是遇到其子节点的"BlockStatement"时
-    static loopTypes = ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement"];
-    static functionTypes = ["ArrowFunctionExpression", "FunctionDeclaration", "ObjectMethod", "ClassMethod"];
-    static environmentTypes =  ["IfStatement"].concat(Environment.loopTypes).concat(Environment.functionTypes);
+    static environmentTypes =  [
+        "IfStatement", "ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement", "ArrowFunctionExpression",
+        "FunctionExpression"
+    ]
+    // 其子节点有"BlockStatement"也不需要new新环境
+    static notEnvironmentTypes = ["TryStatement", "CatchClause"];
+    // 需要单独处理的节点
+    static specialEnvTypes = ["FunctionDeclaration", "ObjectMethod", "ClassMethod"];
 
-    public path: Path;
+
+
     public parentEnvironment: Environment | null;
     public varPaths: Set<Path>;
+    public unVarPaths: Map<string, Path>;
 
-    constructor(path: Path, parentEnvironment: Environment | null)
+    constructor(parentEnvironment: Environment | null)
     {
-        
-        this.path = path;
         this.parentEnvironment = parentEnvironment;
         this.varPaths = new Set();
+        this.unVarPaths = new Map();
     }
 
     clearVarPaths()

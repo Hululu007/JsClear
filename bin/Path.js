@@ -1,17 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Path = void 0;
-const Environment_1 = require("./Environment");
 const generator_1 = require("./generator");
 const traitNode_1 = require("./traitNode");
 const utiles_1 = require("./utiles");
 class Path {
-    constructor(node, parentPath, environment, isSkip = false) {
+    constructor(node, parentPath, isSkip = false) {
         this.node = node;
         this.type = node.type;
         this.parentPath = parentPath;
         this.isSkip = isSkip;
-        this.environment = environment;
         this.initReference();
     }
     // api
@@ -30,16 +28,17 @@ class Path {
         throw new Error("呃...非常抱歉，这好像是一个bug.");
     }
     findReference() {
-        throw new Error("这个节点不能调用.");
+        if (this.type != "Identifier")
+            throw new Error("非Identifier节点不能调用这个方法.");
+        return this.referencePaths;
     }
     // 判断是否是定义path
     isVarNode() {
         if ("Identifier" != this.type)
             return false;
-        let type = this.parentPath.type;
-        if ('VariableDeclarator' == type)
-            return true;
-        if (Environment_1.Environment.functionTypes.includes(type))
+        let parentType = this.parentPath.type;
+        // ObjectProperty 特殊处理
+        if (Path.varTypes.includes(parentType))
             return true;
         return false;
     }
@@ -54,3 +53,8 @@ class Path {
     }
 }
 exports.Path = Path;
+// 可直接确定为定义变量的节点
+Path.varTypes = [
+    "FunctionDeclaration", , "ClassMethod", "ArrowFunctionExpression", "FunctionExpression",
+    "VariableDeclarator"
+];

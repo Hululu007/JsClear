@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Environment = void 0;
 class Environment {
-    constructor(path, parentEnvironment) {
-        this.path = path;
+    constructor(parentEnvironment) {
         this.parentEnvironment = parentEnvironment;
         this.varPaths = new Set();
+        this.unVarPaths = new Map();
     }
     clearVarPaths() {
         this.varPaths = new Set();
@@ -29,7 +29,13 @@ class Environment {
     }
 }
 exports.Environment = Environment;
+// 环境
 // 这些节点需要遇到就解析作用域而不是遇到其子节点的"BlockStatement"时
-Environment.loopTypes = ["ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement"];
-Environment.functionTypes = ["ArrowFunctionExpression", "FunctionDeclaration", "ObjectMethod", "ClassMethod"];
-Environment.environmentTypes = ["IfStatement"].concat(Environment.loopTypes).concat(Environment.functionTypes);
+Environment.environmentTypes = [
+    "IfStatement", "ForStatement", "WhileStatement", "ForOfStatement", "DoWhileStatement", "ArrowFunctionExpression",
+    "FunctionExpression"
+];
+// 其子节点有"BlockStatement"也不需要new新环境
+Environment.notEnvironmentTypes = ["TryStatement", "CatchClause"];
+// 需要单独处理的节点
+Environment.specialEnvTypes = ["FunctionDeclaration", "ObjectMethod", "ClassMethod"];
